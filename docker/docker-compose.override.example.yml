@@ -1,0 +1,15 @@
+# Arquivo de exemplo para override local
+# Copie para docker-compose.override.yml para personalizações locais
+# Este arquivo é automaticamente carregado pelo Docker Compose
+
+services:
+  app:
+    environment:
+      # Adicione variáveis de ambiente personalizadas aqui
+      - XDEBUG_MODE=develop,debug
+      - XDEBUG_CONFIG=client_host=host.docker.internal
+
+  nginx:
+    ports:
+      # Altere a porta se necessário
+      - "8000:80"

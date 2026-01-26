@@ -1,0 +1,149 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: trashtalk-records:app-prod
+    container_name: trashtalk-app-prod
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - trashtalk-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-trashtalk}
+      - DB_USERNAME=${DB_USERNAME:-trashtalk}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.service=app"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+
+  nginx:
+    image: nginx:alpine
+    container_name: trashtalk-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - trashtalk-network
+    depends_on:
+      - app
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.service=nginx"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+
+  db:
+    image: postgres:16-alpine
+    container_name: trashtalk-db-prod
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-trashtalk}
+      - POSTGRES_USER=${DB_USERNAME:-trashtalk}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - trashtalk-db-data-prod:/var/lib/postgresql/data
+    networks:
+      - trashtalk-network
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.service=database"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-trashtalk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: trashtalk-redis-prod
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - trashtalk-redis-data-prod:/data
+    networks:
+      - trashtalk-network
+    command: redis-server --appendonly yes
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.service=cache"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  node:
+    image: node:20-alpine
+    container_name: trashtalk-node-prod
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/node_modules
+    command: npm run dev
+    networks:
+      - trashtalk-network
+    depends_on:
+      - app
+    environment:
+      - NODE_ENV=development
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.service=frontend"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+
+volumes:
+  trashtalk-db-data-prod:
+    name: trashtalk-db-data-prod
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.type=database"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+  trashtalk-redis-data-prod:
+    name: trashtalk-redis-data-prod
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.trashtalk.type=cache"
+      - "com.trashtalk.environment=production"
+      - "com.docker.compose.project=trashtalk-records"
+
+networks:
+  trashtalk-network:
+    name: trashtalk-network
+    driver: bridge
+    labels:
+      - "com.trashtalk.project=trashtalk-records"
+      - "com.docker.compose.project=trashtalk-records"

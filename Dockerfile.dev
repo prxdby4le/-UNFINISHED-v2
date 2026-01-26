@@ -1,0 +1,62 @@
+FROM php:8.4-fpm-alpine
+
+LABEL maintainer="Trashtalk Records"
+LABEL description="Trashtalk Records - Development Environment"
+LABEL com.trashtalk.project="trashtalk-records"
+LABEL com.trashtalk.environment="development"
+
+# Install system dependencies (dev and runtime)
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libpng \
+    libjpeg-turbo-dev \
+    libjpeg-turbo \
+    libwebp-dev \
+    libwebp \
+    freetype-dev \
+    freetype \
+    libzip-dev \
+    libzip \
+    zip \
+    unzip \
+    oniguruma-dev \
+    oniguruma \
+    postgresql-dev \
+    nodejs \
+    npm
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+    pdo \
+    pdo_pgsql \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip
+
+# Install Redis extension
+RUN apk add --no-cache pcre-dev $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del pcre-dev $PHPIZE_DEPS
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
