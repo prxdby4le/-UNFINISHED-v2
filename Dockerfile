@@ -1,6 +1,9 @@
-# Node stage - build assets (Debian/glibc for Vite/Rollup/Tailwind native binaries)
+# Node stage - build assets
 FROM node:22-slim AS node-build
 WORKDIR /app
+
+# Force NODE_ENV=development so npm ci installs ALL deps (including devDependencies)
+ENV NODE_ENV=development
 
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit
@@ -10,13 +13,10 @@ COPY . .
 # Create vendor stub so Tailwind @source doesn't fail on missing path
 RUN mkdir -p vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 
-# Build assets - log to file then cat so BuildKit shows the output
+# Build assets
 ENV NODE_OPTIONS=--max-old-space-size=1024
-RUN node --version && npm --version
-RUN npm run build > /tmp/build.log 2>&1; \
-    BUILD_RC=$?; \
-    cat /tmp/build.log; \
-    exit $BUILD_RC
+ENV NODE_ENV=production
+RUN npm run build
 
 # Base PHP stage
 FROM php:8.4-fpm-alpine AS base
