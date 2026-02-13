@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect } from 'react';
 import { type AudioVersion } from '@/repositories/audioRepository';
 
+interface ProjectInfo {
+    id: number;
+    name: string;
+    cover_path?: string;
+}
+
 interface PlayerState {
-    currentTrack: AudioVersion | null;
-    playlist: AudioVersion[];
+    currentTrack: (AudioVersion & { project?: ProjectInfo }) | null;
+    playlist: (AudioVersion & { project?: ProjectInfo })[];
     isPlaying: boolean;
     currentTime: number;
     duration: number;
     volume: number;
     playbackRate: number;
+    pitchSemitones: number;
     loopMode: 'off' | 'all' | 'one';
     shuffle: boolean;
 }
@@ -22,10 +29,11 @@ interface PlayerContextType extends PlayerState {
     seek: (time: number) => void;
     setVolume: (volume: number) => void;
     setPlaybackRate: (rate: number) => void;
+    setPitch: (semitones: number) => void;
     setLoopMode: (mode: 'off' | 'all' | 'one') => void;
     toggleShuffle: () => void;
-    loadTrack: (track: AudioVersion) => void;
-    loadPlaylist: (tracks: AudioVersion[]) => void;
+    loadTrack: (track: AudioVersion & { project?: ProjectInfo }) => void;
+    loadPlaylist: (tracks: (AudioVersion & { project?: ProjectInfo })[], project?: ProjectInfo) => void;
     setCurrentTime: (time: number) => void;
 }
 
@@ -41,6 +49,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         duration: 0,
         volume: 1,
         playbackRate: 1,
+        pitchSemitones: 0,
         loopMode: 'off',
         shuffle: false,
     });
@@ -112,12 +121,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     // Update audio properties when state changes
+    const effectivePlaybackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
     useEffect(() => {
         if (audioRef.current) {
             audioRef.current.volume = state.volume;
-            audioRef.current.playbackRate = state.playbackRate;
+            audioRef.current.playbackRate = effectivePlaybackRate;
         }
-    }, [state.volume, state.playbackRate]);
+    }, [state.volume, state.playbackRate, state.pitchSemitones, effectivePlaybackRate]);
 
     const play = useCallback(() => {
         if (audioRef.current) {
@@ -158,6 +168,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setState((prev) => ({ ...prev, playbackRate: clampedRate }));
     }, []);
 
+    const setPitch = useCallback((semitones: number) => {
+        const clamped = Math.max(-12, Math.min(12, semitones));
+        setState((prev) => ({ ...prev, pitchSemitones: clamped }));
+    }, []);
+
     const setLoopMode = useCallback((mode: 'off' | 'all' | 'one') => {
         setState((prev) => ({ ...prev, loopMode: mode }));
         if (audioRef.current) {
@@ -169,7 +184,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
     }, []);
 
-    const loadTrack = useCallback((track: AudioVersion) => {
+    const loadTrack = useCallback((track: AudioVersion & { project?: ProjectInfo }) => {
         if (audioRef.current) {
             const url = `/storage/${track.file_path}`;
             audioRef.current.src = url;
@@ -182,13 +197,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const loadPlaylist = useCallback((tracks: AudioVersion[]) => {
+    const loadPlaylist = useCallback((tracks: (AudioVersion & { project?: ProjectInfo; project_info?: ProjectInfo })[], project?: ProjectInfo) => {
+        const withProject = tracks.map((t) => ({
+            ...t,
+            project: t.project ?? t.project_info ?? project,
+        }));
         setState((prev) => ({
             ...prev,
-            playlist: tracks,
+            playlist: withProject,
         }));
-        if (tracks.length > 0 && !state.currentTrack) {
-            loadTrack(tracks[0]);
+        if (withProject.length > 0 && !state.currentTrack) {
+            loadTrack(withProject[0]);
         }
     }, [state.currentTrack, loadTrack]);
 
@@ -255,6 +274,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         seek,
         setVolume,
         setPlaybackRate,
+        setPitch,
         setLoopMode,
         toggleShuffle,
         loadTrack,

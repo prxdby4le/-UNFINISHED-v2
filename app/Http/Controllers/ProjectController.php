@@ -70,6 +70,14 @@ class ProjectController extends Controller
             }
         }
 
+        $project->audio_versions->each(function ($version) use ($project) {
+            $version->project_info = [
+                'id' => $project->id,
+                'name' => $project->name,
+                'cover_path' => $project->cover_path,
+            ];
+        });
+
         return Inertia::render('projects/Show', [
             'project' => $project,
             'colors' => $colors,

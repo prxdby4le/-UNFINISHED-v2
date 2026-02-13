@@ -67,60 +67,45 @@ export default function AudioUpload({ projectId }: Props) {
     };
 
     const uploadFiles = async () => {
-        for (let i = 0; i < files.length; i++) {
-            const fileWithProgress = files[i];
-            if (fileWithProgress.status !== 'pending') continue;
+        const pendingFiles = files.filter((f) => f.status === 'pending');
+        if (pendingFiles.length === 0) return;
 
-            setFiles((prev) => {
-                const updated = [...prev];
-                updated[i] = { ...updated[i], status: 'uploading', progress: 0 };
-                return updated;
+        setProcessing(true);
+        setFiles((prev) =>
+            prev.map((f) =>
+                f.status === 'pending' ? { ...f, status: 'uploading' as const, progress: 0 } : f
+            )
+        );
+
+        try {
+            const formData = new FormData();
+            pendingFiles.forEach(({ file }) => formData.append('files[]', file));
+
+            await router.post(`/projects/${projectId}/audio-versions`, formData, {
+                forceFormData: true,
+                preserveScroll: true,
             });
 
-            try {
-                // Simulate progress
-                const interval = setInterval(() => {
-                    setFiles((prev) => {
-                        const updated = [...prev];
-                        if (updated[i].progress < 90) {
-                            updated[i] = { ...updated[i], progress: updated[i].progress + 10 };
-                        }
-                        return updated;
-                    });
-                }, 200);
+            setFiles((prev) =>
+                prev.map((f) => (f.status === 'uploading' ? { ...f, status: 'success' as const, progress: 100 } : f))
+            );
 
-                const formData = new FormData();
-                formData.append('file', fileWithProgress.file);
-
-                await router.post(`/projects/${projectId}/audio-versions`, formData, {
-                    forceFormData: true,
-                    preserveScroll: true,
-                });
-
-                clearInterval(interval);
-
-                setFiles((prev) => {
-                    const updated = [...prev];
-                    updated[i] = { ...updated[i], status: 'success', progress: 100 };
-                    return updated;
-                });
-            } catch (error) {
-                setFiles((prev) => {
-                    const updated = [...prev];
-                    updated[i] = {
-                        ...updated[i],
-                        status: 'error',
-                        error: error instanceof Error ? error.message : 'Erro ao fazer upload',
-                    };
-                    return updated;
-                });
-            }
+            setTimeout(() => router.visit(`/projects/${projectId}`), 500);
+        } catch (error) {
+            setFiles((prev) =>
+                prev.map((f) =>
+                    f.status === 'uploading'
+                        ? {
+                              ...f,
+                              status: 'error' as const,
+                              error: error instanceof Error ? error.message : 'Erro ao fazer upload',
+                          }
+                        : f
+                )
+            );
+        } finally {
+            setProcessing(false);
         }
-
-        // Reload after all uploads
-        setTimeout(() => {
-            router.visit(`/projects/${projectId}`);
-        }, 1000);
     };
 
     return (

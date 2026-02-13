@@ -45,6 +45,9 @@ class AudioService
             }
 
             if ($this->getid3 === null) {
+                if (!class_exists('getID3', false)) {
+                    require_once base_path('vendor/james-heinrich/getid3/getid3/getid3.php');
+                }
                 $this->getid3 = new \getID3();
             }
 
@@ -77,16 +80,81 @@ class AudioService
                 $duration = (int) round($fileInfo['video']['playtime_seconds']);
             }
 
-            return [
-                'format' => $format,
+            $result = [
+                'format' => $format ?: strtolower(pathinfo($filePath, PATHINFO_EXTENSION)),
                 'duration' => $duration > 0 ? $duration : null,
             ];
+
+            // Fallback: read WAV/RIFF header manually when getID3 fails
+            if ($result['duration'] === null && file_exists($filePath)) {
+                $wavDuration = $this->readWavDuration($filePath);
+                if ($wavDuration > 0) {
+                    $result['duration'] = (int) round($wavDuration);
+                }
+            }
+
+            return $result;
         } catch (Exception $e) {
             \Log::error('Error extracting audio metadata', [
                 'file' => $filePath,
                 'error' => $e->getMessage(),
             ]);
-            return ['format' => null, 'duration' => null];
+            $fallback = ['format' => strtolower(pathinfo($filePath, PATHINFO_EXTENSION)), 'duration' => null];
+            $wavDuration = $this->readWavDuration($filePath);
+            if ($wavDuration > 0) {
+                $fallback['duration'] = (int) round($wavDuration);
+            }
+            return $fallback;
+        }
+    }
+
+    /**
+     * Read WAV/RIFF file duration from header (fallback when getID3 fails)
+     */
+    private function readWavDuration(string $filePath): float
+    {
+        if (! $filePath || ! file_exists($filePath)) {
+            return 0;
+        }
+        try {
+            $fp = @fopen($filePath, 'rb');
+            if (! $fp || fread($fp, 4) !== 'RIFF') {
+                return 0;
+            }
+            fread($fp, 4);
+            if (fread($fp, 4) !== 'WAVE') {
+                fclose($fp);
+                return 0;
+            }
+            $byteRate = 0;
+            $dataSize = 0;
+            while (! feof($fp)) {
+                $chunkId = fread($fp, 4);
+                $chunkData = fread($fp, 4);
+                $chunkSize = strlen($chunkData) === 4 ? unpack('V', $chunkData)[1] : 0;
+                if ($chunkId === 'fmt ') {
+                    $fmt = fread($fp, min(16, $chunkSize));
+                    if (strlen($fmt) >= 12) {
+                        $byteRate = unpack('V', substr($fmt, 8, 4))[1] ?? 0;
+                    }
+                    if ($chunkSize > 16) {
+                        fseek($fp, $chunkSize - 16, SEEK_CUR);
+                    }
+                } elseif ($chunkId === 'data') {
+                    $dataSize = $chunkSize;
+                    break;
+                } else {
+                    fseek($fp, $chunkSize, SEEK_CUR);
+                }
+            }
+            fclose($fp);
+            if ($dataSize <= 0 || $byteRate <= 0) {
+                return 0;
+            }
+
+            return $dataSize / $byteRate;
+        } catch (\Throwable) {
+            return 0;
         }
     }
 

@@ -30,12 +30,11 @@ export default function ProjectsShow({ project, colors }: Props) {
     const [versions, setVersions] = useState<AudioVersion[]>(project.audio_versions);
 
     useEffect(() => {
-        // Load playlist when project changes
         if (project.audio_versions.length > 0) {
-            player.loadPlaylist(project.audio_versions);
+            player.loadPlaylist(project.audio_versions, { id: project.id, name: project.name, cover_path: project.cover_path });
         }
         setVersions(project.audio_versions);
-    }, [project.id, project.audio_versions]);
+    }, [project.id, project.audio_versions, project.name, project.cover_path]);
 
     const handleDelete = () => {
         if (confirm('Tem certeza que deseja deletar este projeto? Esta ação não pode ser desfeita.')) {
@@ -271,19 +270,17 @@ export default function ProjectsShow({ project, colors }: Props) {
                                                 <div className="text-base font-light truncate">
                                                     {version.name}
                                                 </div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    {version.created_at ? formatDate(version.created_at) : 'Unknown date'}
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                    <span className="uppercase font-mono">
+                                                        {version.format || version.file_path?.split('.').pop() || '—'}
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span>{version.duration ? formatDuration(version.duration) : '—'}</span>
+                                                    <span>•</span>
+                                                    <span>{version.created_at ? formatDate(version.created_at) : ''}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                                <span className="text-xs text-muted-foreground uppercase font-mono">
-                                                    {version.format || 'unknown'}
-                                                </span>
-                                                {version.duration && (
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {formatDuration(version.duration)}
-                                                    </span>
-                                                )}
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"

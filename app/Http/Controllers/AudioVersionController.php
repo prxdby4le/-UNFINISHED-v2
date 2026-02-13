@@ -31,24 +31,39 @@ class AudioVersionController extends Controller
 
     public function store(StoreAudioVersionRequest $request, int $projectId)
     {
-        $file = $request->file('file');
-        $metadata = $this->audioService->extractMetadata($file->getRealPath());
+        $files = $request->file('files') ?? [$request->file('file')];
+        $files = array_filter($files);
 
-        // Store file
-        $filePath = $this->storageService->storeFile($file, 'audio/versions');
+        if (empty($files)) {
+            return redirect()->back()->with('error', 'Nenhum arquivo enviado.');
+        }
 
-        // Create version
-        $data = [
-            'name' => $request->input('name') ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-            'file_path' => $filePath,
-            'format' => $metadata['format'],
-            'duration' => $metadata['duration'],
-            'size' => $metadata['size'],
-        ];
+        $uploaded = 0;
+        foreach ($files as $file) {
+            if (!$file || !$file->isValid()) {
+                continue;
+            }
 
-        $version = $this->repository->uploadAudio($projectId, $data);
+            $metadata = $this->audioService->extractMetadata($file->getRealPath());
+            $filePath = $this->storageService->storeFile($file, 'audio/versions');
 
-        return redirect()->back()->with('success', 'Áudio enviado com sucesso!');
+            $data = [
+                'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'file_path' => $filePath,
+                'format' => $metadata['format'] ?? strtolower($file->getClientOriginalExtension()),
+                'duration' => $metadata['duration'],
+                'size' => $metadata['size'],
+            ];
+
+            $this->repository->uploadAudio($projectId, $data);
+            $uploaded++;
+        }
+
+        $message = $uploaded === 1
+            ? 'Áudio enviado com sucesso!'
+            : "{$uploaded} áudios enviados com sucesso!";
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function update(UpdateAudioVersionRequest $request, int $id)
