@@ -1,7 +1,8 @@
 # Stage: generate Wayfinder routes (PHP) - needed for Vite build
 FROM php:8.4-cli-alpine AS wayfinder
 RUN apk add --no-cache git unzip postgresql-dev oniguruma-dev libxml2-dev
-RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring fileinfo pcntl xml ctype json tokenizer
+# json e tokenizer já vêm no PHP 8.4; instalá-los via ext-install quebra o build
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring fileinfo pcntl xml ctype
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY composer.json composer.lock ./
@@ -24,6 +25,7 @@ COPY . .
 # Use Wayfinder-generated routes (no PHP in node stage)
 COPY --from=wayfinder /app/resources/js/routes ./resources/js/routes
 COPY --from=wayfinder /app/resources/js/wayfinder ./resources/js/wayfinder
+COPY --from=wayfinder /app/resources/js/actions ./resources/js/actions
 
 RUN mkdir -p vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 

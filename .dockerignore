@@ -1,30 +1,60 @@
+# Git
 .git
 .gitignore
+.gitattributes
+
+# Ambiente e segredos
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
+auth.json
+
+# Cache e artefatos de teste
 .phpunit.cache
 .phpunit.result.cache
+.phpactor.json
+
+# Dependências (reinstaladas no build)
 node_modules
 vendor
+
+# Laravel – gerados em runtime ou no build
 storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 bootstrap/cache/*
+bootstrap/ssr
 public/build
 public/hot
-.DS_Store
+public/storage
+resources/js/routes
+resources/js/wayfinder
+resources/js/actions
+
+# Logs e temporários
 *.log
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# IDE e editores
 .idea
 .vscode
 .fleet
 .nova
 .zed
+.cursor
+.DS_Store
+
+# Docker (não precisam estar no contexto do build)
 docker-compose.yml
+docker-compose.dev.yml
+docker-compose.override.yml
 Dockerfile
+Dockerfile.dev
 .dockerignore
-README.md
-IMPLEMENTACAO_COMPLETA.md
+
+# CI e documentação (reduzem contexto)
+.github
+*.md

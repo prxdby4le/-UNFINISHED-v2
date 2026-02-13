@@ -1,3 +1,4 @@
+# Laravel
 /.phpunit.cache
 /bootstrap/ssr
 /node_modules
@@ -6,26 +7,40 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/logs/*
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
 /vendor
-.DS_Store
+
+# Ambiente
 .env
 .env.backup
 .env.production
+.env.*
+!.env.example
+
+# PHP / Composer
 .phpactor.json
 .phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
 /auth.json
+
+# Node
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Sistema e IDE
+.DS_Store
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
 
-# Docker
+# Vagrant / Homestead
+Homestead.json
+Homestead.yaml
+
+# Docker (overrides locais)
 docker-compose.override.yml
