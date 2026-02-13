@@ -1,12 +1,19 @@
 # Node stage - build assets (Debian/glibc for Vite/Rollup/Tailwind native binaries)
-FROM node:20-slim AS node-build
+FROM node:22-slim AS node-build
 WORKDIR /app
 
+# Show Node version for debugging
+RUN node --version && npm --version
+
 COPY package.json package-lock.json ./
-RUN npm ci --prefer-offline --no-audit
+RUN npm ci --no-audit
 
 COPY . .
-# Build assets (Node image has compatible native binaries for Vite/Rollup/Tailwind)
+
+# Create vendor stub so Tailwind @source doesn't fail on missing path
+RUN mkdir -p vendor/laravel/framework/src/Illuminate/Pagination/resources/views
+
+# Build assets
 ENV NODE_OPTIONS=--max-old-space-size=2048
 RUN npm run build
 
