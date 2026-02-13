@@ -10,22 +10,13 @@ COPY . .
 # Create vendor stub so Tailwind @source doesn't fail on missing path
 RUN mkdir -p vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 
-# Build assets - capture full error output for debugging
+# Build assets - log to file then cat so BuildKit shows the output
 ENV NODE_OPTIONS=--max-old-space-size=1024
-RUN node --version && npm --version && \
-    echo "=== Checking vite binary ===" && \
-    ls -la node_modules/.bin/vite && \
-    echo "=== Starting vite build ===" && \
-    npx vite build --debug 2>&1; \
+RUN node --version && npm --version
+RUN npm run build > /tmp/build.log 2>&1; \
     BUILD_RC=$?; \
-    if [ $BUILD_RC -ne 0 ]; then \
-        echo ""; \
-        echo "=== VITE BUILD FAILED (exit code: $BUILD_RC) ==="; \
-        echo "=== Node: $(node --version) ==="; \
-        echo "=== Platform: $(uname -m) ==="; \
-        echo "=== Memory: $(cat /proc/meminfo | head -3) ==="; \
-        exit $BUILD_RC; \
-    fi
+    cat /tmp/build.log; \
+    exit $BUILD_RC
 
 # Base PHP stage
 FROM php:8.4-fpm-alpine AS base
