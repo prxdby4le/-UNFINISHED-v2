@@ -8,8 +8,8 @@ services:
     container_name: trashtalk-app-prod
     restart: unless-stopped
     working_dir: /var/www/html
-    volumes:
-      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    ports:
+      - "${APP_PORT:-8000}:80"
     networks:
       - trashtalk-network
     depends_on:
@@ -34,24 +34,6 @@ services:
     labels:
       - "com.trashtalk.project=trashtalk-records"
       - "com.trashtalk.service=app"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
-
-  nginx:
-    image: nginx:alpine
-    container_name: trashtalk-nginx-prod
-    restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8000}:80"
-    volumes:
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - trashtalk-network
-    depends_on:
-      - app
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.service=nginx"
       - "com.trashtalk.environment=production"
       - "com.docker.compose.project=trashtalk-records"
 
@@ -102,27 +84,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-
-  node:
-    image: node:20-alpine
-    container_name: trashtalk-node-prod
-    restart: unless-stopped
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
-      - /var/www/html/node_modules
-    command: npm run dev
-    networks:
-      - trashtalk-network
-    depends_on:
-      - app
-    environment:
-      - NODE_ENV=development
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.service=frontend"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
 
 volumes:
   trashtalk-db-data-prod:

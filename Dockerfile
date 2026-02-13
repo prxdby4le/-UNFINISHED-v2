@@ -99,6 +99,9 @@ LABEL com.trashtalk.environment="production"
 # Copy nginx configuration
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 
+# Copy PHP configuration
+COPY docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
+
 # Copy supervisor configuration
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
