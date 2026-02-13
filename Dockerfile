@@ -1,4 +1,16 @@
-# Build stage
+# Node stage - build assets (Debian/glibc for Vite/Rollup/Tailwind native binaries)
+FROM node:20-slim AS node-build
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --prefer-offline --no-audit
+
+COPY . .
+# Build assets (Node image has compatible native binaries for Vite/Rollup/Tailwind)
+ENV NODE_OPTIONS=--max-old-space-size=2048
+RUN npm run build
+
+# Base PHP stage
 FROM php:8.4-fpm-alpine AS base
 
 LABEL maintainer="Trashtalk Records"
@@ -15,8 +27,6 @@ RUN apk add --no-cache \
     unzip \
     oniguruma-dev \
     postgresql-dev \
-    nodejs \
-    npm \
     nginx \
     supervisor
 
@@ -35,31 +45,22 @@ RUN docker-php-ext-install \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
 # Install PHP dependencies
-# Use --no-scripts to skip post-autoload scripts (artisan not available yet)
-# Use --ignore-platform-reqs to avoid PHP version conflicts during build
 RUN composer install --optimize-autoloader --no-dev --no-interaction --prefer-dist --ignore-platform-reqs --no-scripts
-
-# Copy package files for Node
-COPY package.json package-lock.json ./
-
-# Install Node dependencies
-RUN npm ci || npm install
 
 # Copy application files
 COPY . .
 
-# Run Laravel package discovery (requires artisan and app files)
-RUN php artisan package:discover --ansi
+# Copy built assets from node stage
+COPY --from=node-build /app/public/build /var/www/html/public/build
 
-# Build assets
-RUN npm run build
+# Run Laravel package discovery
+RUN php artisan package:discover --ansi
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
