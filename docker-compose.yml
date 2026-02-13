@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     ports:
-      - "${APP_PORT:-8000}:80"
+      - "${APP_PORT:-8001}:80"
     networks:
       - trashtalk-network
     depends_on:
