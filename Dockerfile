@@ -1,6 +1,6 @@
 # Stage: generate Wayfinder routes (PHP) - needed for Vite build
 FROM php:8.4-cli-alpine AS wayfinder
-RUN apk add --no-cache git unzip postgresql-dev oniguruma-dev
+RUN apk add --no-cache git unzip postgresql-dev oniguruma-dev libxml2-dev
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring fileinfo pcntl xml ctype json tokenizer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
