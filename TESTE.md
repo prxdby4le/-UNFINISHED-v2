@@ -84,13 +84,20 @@ composer run dev
 
 ## 🔧 Problema de permissão em `public/build`
 
-Se aparecer `EACCES, Permission denied: public/build/assets` ao rodar `npm run build`:
+Se aparecer `EACCES, Permission denied: public/build/assets` ao rodar `npm run build` (comum após rodar Docker):
 
 ```bash
 sudo chown -R $(whoami):$(whoami) public/build
 ```
 
-Motivo: o Docker cria esses arquivos como root, e o usuário local não consegue sobrescrevê-los.
+Ou remova a pasta e rode o build limpo:
+
+```bash
+sudo rm -rf public/build
+npm run build:clean
+```
+
+**Motivo:** o Docker cria esses arquivos como root; o usuário local não consegue sobrescrevê-los.
 
 ---
 
