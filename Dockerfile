@@ -1,19 +1,32 @@
+# Stage: generate Wayfinder routes (PHP) - needed for Vite build
+FROM php:8.4-cli-alpine AS wayfinder
+RUN apk add --no-cache git unzip
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring fileinfo pcntl xml ctype json tokenizer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --ignore-platform-reqs --no-scripts
+COPY . .
+# Wayfinder needs Laravel bootstrapped (APP_KEY required)
+ENV APP_KEY=base64:dGVzdC1rZXktZm9yLWJ1aWxkLW9ubHk=
+# Generate route helpers (required by frontend; no PHP at node-build stage)
+RUN php artisan wayfinder:generate --with-form
+
 # Node stage - build assets
 FROM node:22-slim AS node-build
 WORKDIR /app
 
-# Force NODE_ENV=development so npm ci installs ALL deps (including devDependencies)
 ENV NODE_ENV=development
-
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit
 
 COPY . .
+# Use Wayfinder-generated routes (no PHP in node stage)
+COPY --from=wayfinder /app/resources/js/routes ./resources/js/routes
+COPY --from=wayfinder /app/resources/js/wayfinder ./resources/js/wayfinder
 
-# Create vendor stub so Tailwind @source doesn't fail on missing path
 RUN mkdir -p vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 
-# Build assets
 ENV NODE_OPTIONS=--max-old-space-size=1024
 ENV NODE_ENV=production
 RUN npm run build
