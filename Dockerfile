@@ -65,6 +65,12 @@ RUN docker-php-ext-install \
     gd \
     zip
 
+# Install Redis extension
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -84,6 +90,9 @@ COPY --from=node-build /app/public/build /var/www/html/public/build
 
 # Run Laravel package discovery
 RUN php artisan package:discover --ansi
+
+# Create storage symlink
+RUN ln -sf /var/www/html/storage/app/public /var/www/html/public/storage
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \

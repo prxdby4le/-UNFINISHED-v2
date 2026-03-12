@@ -1,10 +1,7 @@
 import { Head, router } from '@inertiajs/react';
-import { FormEventHandler, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import { audioRepository } from '@/repositories/audioRepository';
 import { Upload as UploadIcon, X, Check } from 'lucide-react';
 
 interface Props {
@@ -18,6 +15,11 @@ interface FileWithProgress {
     error?: string;
 }
 
+function formatSize(bytes: number): string {
+    const mb = bytes / 1024 / 1024;
+    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+}
+
 export default function AudioUpload({ projectId }: Props) {
     const [files, setFiles] = useState<FileWithProgress[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -25,189 +27,146 @@ export default function AudioUpload({ projectId }: Props) {
 
     const handleFiles = useCallback((fileList: FileList | null) => {
         if (!fileList) return;
-
+        const validExtensions = ['.wav', '.flac', '.mp3', '.aiff', '.m4a'];
         const newFiles: FileWithProgress[] = Array.from(fileList)
             .filter((file) => {
-                const validTypes = ['audio/wav', 'audio/flac', 'audio/mpeg', 'audio/aiff', 'audio/mp4', 'audio/x-m4a'];
-                const validExtensions = ['.wav', '.flac', '.mp3', '.aiff', '.m4a'];
-                const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-                return validTypes.includes(file.type) || validExtensions.includes(extension);
+                const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+                return validExtensions.includes(ext);
             })
-            .map((file) => ({
-                file,
-                progress: 0,
-                status: 'pending' as const,
-            }));
-
+            .map((file) => ({ file, progress: 0, status: 'pending' as const }));
         setFiles((prev) => [...prev, ...newFiles]);
     }, []);
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-    }, []);
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-    }, []);
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-        handleFiles(e.dataTransfer.files);
-    }, [handleFiles]);
-
-    const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        handleFiles(e.target.files);
-    }, [handleFiles]);
-
-    const removeFile = (index: number) => {
-        setFiles((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const uploadFiles = async () => {
-        const pendingFiles = files.filter((f) => f.status === 'pending');
-        if (pendingFiles.length === 0) return;
+    const uploadFiles = () => {
+        const pending = files.filter((f) => f.status === 'pending');
+        if (pending.length === 0) return;
 
         setProcessing(true);
         setFiles((prev) =>
             prev.map((f) =>
-                f.status === 'pending' ? { ...f, status: 'uploading' as const, progress: 0 } : f
-            )
+                f.status === 'pending' ? { ...f, status: 'uploading' as const } : f,
+            ),
         );
 
-        try {
-            const formData = new FormData();
-            pendingFiles.forEach(({ file }) => formData.append('files[]', file));
+        const formData = new FormData();
+        pending.forEach(({ file }) => formData.append('files[]', file));
 
-            await router.post(`/projects/${projectId}/audio-versions`, formData, {
-                forceFormData: true,
-                preserveScroll: true,
-            });
-
-            setFiles((prev) =>
-                prev.map((f) => (f.status === 'uploading' ? { ...f, status: 'success' as const, progress: 100 } : f))
-            );
-
-            setTimeout(() => router.visit(`/projects/${projectId}`), 500);
-        } catch (error) {
-            setFiles((prev) =>
-                prev.map((f) =>
-                    f.status === 'uploading'
-                        ? {
-                              ...f,
-                              status: 'error' as const,
-                              error: error instanceof Error ? error.message : 'Erro ao fazer upload',
-                          }
-                        : f
-                )
-            );
-        } finally {
-            setProcessing(false);
-        }
+        router.post(`/projects/${projectId}/audio-versions`, formData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onProgress: (progress) => {
+                const pct = progress.percentage ?? 0;
+                setFiles((prev) =>
+                    prev.map((f) =>
+                        f.status === 'uploading' ? { ...f, progress: pct } : f,
+                    ),
+                );
+            },
+            onSuccess: () => {
+                setFiles((prev) =>
+                    prev.map((f) =>
+                        f.status === 'uploading' ? { ...f, status: 'success' as const, progress: 100 } : f,
+                    ),
+                );
+                setProcessing(false);
+                setTimeout(() => router.visit(`/projects/${projectId}`), 800);
+            },
+            onError: (errors) => {
+                const msg = Object.values(errors).flat().join(', ') || 'Upload failed';
+                setFiles((prev) =>
+                    prev.map((f) =>
+                        f.status === 'uploading'
+                            ? { ...f, status: 'error' as const, error: msg }
+                            : f,
+                    ),
+                );
+                setProcessing(false);
+            },
+        });
     };
 
     return (
         <AppLayout>
-            <Head title="Upload de Áudio" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div>
-                    <h1 className="text-2xl font-bold">Upload de Áudio</h1>
-                    <p className="text-muted-foreground">Adicione versões de áudio ao projeto</p>
+            <Head title="Upload" />
+            <div className="flex flex-col gap-6">
+                <h1 className="text-2xl font-light tracking-tight">Upload</h1>
+
+                <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
+                    className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-16 transition-colors ${
+                        isDragging ? 'border-foreground/30 bg-muted/30' : 'border-border/40'
+                    }`}
+                >
+                    <UploadIcon className="size-6 text-muted-foreground" />
+                    <p className="mt-3 text-sm text-muted-foreground">
+                        Drop audio files here or{' '}
+                        <label htmlFor="file-input" className="cursor-pointer underline underline-offset-4 hover:text-foreground">
+                            browse
+                        </label>
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground/60">WAV, FLAC, MP3, AIFF, M4A</p>
+                    <input
+                        id="file-input"
+                        type="file"
+                        multiple
+                        accept="audio/*,.wav,.flac,.mp3,.aiff,.m4a"
+                        onChange={(e) => handleFiles(e.target.files)}
+                        className="hidden"
+                    />
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Selecionar Arquivos</CardTitle>
-                        <CardDescription>
-                            Arraste arquivos aqui ou clique para selecionar (WAV, FLAC, MP3, AIFF, M4A)
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                                isDragging
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-muted-foreground/25'
-                            }`}
-                        >
-                            <UploadIcon className="mx-auto size-12 text-muted-foreground mb-4" />
-                            <p className="text-sm text-muted-foreground mb-2">
-                                Arraste arquivos de áudio aqui ou
+                {files.length > 0 && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                {files.length} file{files.length !== 1 ? 's' : ''} selected
                             </p>
-                            <label htmlFor="file-input">
-                                <Button type="button" variant="outline" asChild>
-                                    <span>Selecionar Arquivos</span>
-                                </Button>
-                            </label>
-                            <input
-                                id="file-input"
-                                type="file"
-                                multiple
-                                accept="audio/*,.wav,.flac,.mp3,.aiff,.m4a"
-                                onChange={handleFileInput}
-                                className="hidden"
-                            />
+                            <Button
+                                size="sm"
+                                onClick={uploadFiles}
+                                disabled={processing}
+                                className="bg-foreground text-background hover:bg-foreground/90"
+                            >
+                                {processing ? 'Uploading...' : 'Upload All'}
+                            </Button>
                         </div>
 
-                        {files.length > 0 && (
-                            <div className="mt-6 space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-medium">Arquivos Selecionados ({files.length})</h3>
-                                    <Button onClick={uploadFiles} disabled={processing}>
-                                        {processing ? 'Enviando...' : 'Enviar Todos'}
-                                    </Button>
-                                </div>
-
-                                {files.map((fileWithProgress, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center gap-4 rounded-lg border p-4"
-                                    >
-                                        <div className="flex-1">
-                                            <p className="font-medium">{fileWithProgress.file.name}</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {(fileWithProgress.file.size / 1024 / 1024).toFixed(2)} MB
-                                            </p>
-                                            {fileWithProgress.status === 'uploading' && (
-                                                <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-primary transition-all"
-                                                        style={{ width: `${fileWithProgress.progress}%` }}
-                                                    />
-                                                </div>
-                                            )}
-                                            {fileWithProgress.status === 'success' && (
-                                                <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
-                                                    <Check className="size-4" />
-                                                    Enviado com sucesso
-                                                </p>
-                                            )}
-                                            {fileWithProgress.status === 'error' && (
-                                                <p className="text-sm text-destructive mt-1">
-                                                    {fileWithProgress.error}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeFile(index)}
-                                            disabled={fileWithProgress.status === 'uploading'}
-                                        >
-                                            <X className="size-4" />
-                                        </Button>
+                        <div className="divide-y divide-border/30">
+                            {files.map((f, i) => (
+                                <div key={i} className="flex items-center gap-3 py-2.5">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm">{f.file.name}</p>
+                                        <p className="text-xs text-muted-foreground">{formatSize(f.file.size)}</p>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-
-                    </CardContent>
-                </Card>
+                                    {f.status === 'success' && <Check className="size-4 text-green-500 flex-shrink-0" />}
+                                    {f.status === 'error' && (
+                                        <span className="flex-shrink-0 text-xs text-destructive">{f.error}</span>
+                                    )}
+                                    {f.status === 'uploading' && (
+                                        <div className="flex flex-shrink-0 items-center gap-2">
+                                            <div className="h-1 w-16 overflow-hidden rounded-full bg-muted">
+                                                <div
+                                                    className="h-full bg-foreground transition-[width] duration-200"
+                                                    style={{ width: `${f.progress}%` }}
+                                                />
+                                            </div>
+                                            <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
+                                                {f.progress}%
+                                            </span>
+                                        </div>
+                                    )}
+                                    {f.status === 'pending' && (
+                                        <button className="flex-shrink-0" onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}>
+                                            <X className="size-3.5 text-muted-foreground hover:text-foreground" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

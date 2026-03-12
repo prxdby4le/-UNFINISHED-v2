@@ -17,6 +17,7 @@ services:
       - db
       - redis
     environment:
+      - APP_KEY=${APP_KEY}
       - APP_ENV=local
       - APP_DEBUG=true
       - DB_CONNECTION=pgsql

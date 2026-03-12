@@ -70,7 +70,7 @@ class ProjectController extends Controller
             }
         }
 
-        $project->audio_versions->each(function ($version) use ($project) {
+        $project->audioVersions->each(function ($version) use ($project) {
             $version->project_info = [
                 'id' => $project->id,
                 'name' => $project->name,

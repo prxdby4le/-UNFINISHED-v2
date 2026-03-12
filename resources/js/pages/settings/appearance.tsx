@@ -1,32 +1,19 @@
 import { Head } from '@inertiajs/react';
 import AppearanceTabs from '@/components/appearance-tabs';
-import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit as editAppearance } from '@/routes/appearance';
-import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Appearance settings',
-        href: editAppearance().url,
-    },
-];
 
 export default function Appearance() {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Appearance settings" />
-
-            <h1 className="sr-only">Appearance Settings</h1>
+        <AppLayout>
+            <Head title="Appearance" />
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title="Appearance settings"
-                        description="Update your account's appearance settings"
-                    />
+                    <div>
+                        <h2 className="text-base font-medium">Appearance</h2>
+                        <p className="mt-0.5 text-sm text-muted-foreground">Choose your preferred theme</p>
+                    </div>
                     <AppearanceTabs />
                 </div>
             </SettingsLayout>

@@ -7,9 +7,11 @@ interface ProjectInfo {
     cover_path?: string;
 }
 
+type TrackWithProject = AudioVersion & { project?: ProjectInfo };
+
 interface PlayerState {
-    currentTrack: (AudioVersion & { project?: ProjectInfo }) | null;
-    playlist: (AudioVersion & { project?: ProjectInfo })[];
+    currentTrack: TrackWithProject | null;
+    playlist: TrackWithProject[];
     isPlaying: boolean;
     currentTime: number;
     duration: number;
@@ -32,15 +34,20 @@ interface PlayerContextType extends PlayerState {
     setPitch: (semitones: number) => void;
     setLoopMode: (mode: 'off' | 'all' | 'one') => void;
     toggleShuffle: () => void;
-    loadTrack: (track: AudioVersion & { project?: ProjectInfo }) => void;
-    loadPlaylist: (tracks: (AudioVersion & { project?: ProjectInfo })[], project?: ProjectInfo) => void;
+    loadTrack: (track: TrackWithProject) => void;
+    loadPlaylist: (tracks: TrackWithProject[], project?: ProjectInfo) => void;
     setCurrentTime: (time: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
+const PRELOAD_THRESHOLD_S = 5;
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const activeRef = useRef<HTMLAudioElement | null>(null);
+    const nextRef = useRef<HTMLAudioElement | null>(null);
+    const preloadedTrackIdRef = useRef<number | null>(null);
+
     const [state, setState] = useState<PlayerState>({
         currentTrack: null,
         playlist: [],
@@ -54,235 +61,303 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         shuffle: false,
     });
 
-    // Initialize audio element
-    useEffect(() => {
-        if (!audioRef.current) {
-            audioRef.current = new Audio();
-            audioRef.current.preload = 'auto';
+    const stateRef = useRef(state);
+    stateRef.current = state;
 
-            // Event listeners
-            audioRef.current.addEventListener('loadedmetadata', () => {
-                setState((prev) => ({
-                    ...prev,
-                    duration: audioRef.current?.duration || 0,
-                }));
-            });
-
-            audioRef.current.addEventListener('timeupdate', () => {
-                setState((prev) => ({
-                    ...prev,
-                    currentTime: audioRef.current?.currentTime || 0,
-                }));
-            });
-
-            const handleEnded = () => {
-                setState((prev) => {
-                    if (prev.loopMode === 'one') {
-                        if (audioRef.current) {
-                            audioRef.current.currentTime = 0;
-                            audioRef.current.play();
-                        }
-                        return prev;
-                    } else if (prev.loopMode === 'all' && prev.playlist.length > 0) {
-                        // Trigger next track
-                        setTimeout(() => {
-                            const currentIndex = prev.playlist.findIndex(
-                                (track) => track.id === prev.currentTrack?.id
-                            );
-                            if (currentIndex !== -1) {
-                                const nextIndex = (currentIndex + 1) % prev.playlist.length;
-                                const nextTrack = prev.playlist[nextIndex];
-                                if (nextTrack) {
-                                    loadTrack(nextTrack);
-                                    setTimeout(() => play(), 100);
-                                }
-                            }
-                        }, 100);
-                        return { ...prev, isPlaying: false };
-                    } else {
-                        return { ...prev, isPlaying: false };
-                    }
-                });
-            };
-
-            audioRef.current.addEventListener('ended', handleEnded);
-
-            audioRef.current.addEventListener('error', () => {
-                setState((prev) => ({ ...prev, isPlaying: false }));
-            });
+    const getNextTrackFor = useCallback((current: TrackWithProject | null, playlist: TrackWithProject[], shuffle: boolean): TrackWithProject | null => {
+        if (playlist.length === 0 || !current) return null;
+        if (shuffle) {
+            const others = playlist.filter((t) => t.id !== current.id);
+            return others.length > 0 ? others[Math.floor(Math.random() * others.length)] : playlist[0];
         }
-
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
+        const idx = playlist.findIndex((t) => t.id === current.id);
+        if (idx === -1) return playlist[0];
+        return playlist[(idx + 1) % playlist.length];
     }, []);
 
-    // Update audio properties when state changes
-    const effectivePlaybackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.volume = state.volume;
-            audioRef.current.playbackRate = effectivePlaybackRate;
+    const getPrevTrack = useCallback((): TrackWithProject | null => {
+        const { playlist, currentTrack } = stateRef.current;
+        if (playlist.length === 0 || !currentTrack) return null;
+        const idx = playlist.findIndex((t) => t.id === currentTrack.id);
+        if (idx === -1) return playlist[0];
+        return playlist[idx === 0 ? playlist.length - 1 : idx - 1];
+    }, []);
+
+    const applyAudioProps = useCallback((el: HTMLAudioElement) => {
+        const s = stateRef.current;
+        el.volume = s.volume;
+        el.preservesPitch = s.pitchSemitones === 0;
+        el.playbackRate = s.playbackRate * Math.pow(2, s.pitchSemitones / 12);
+    }, []);
+
+    const preloadNext = useCallback(() => {
+        const s = stateRef.current;
+        const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
+        if (!upcoming || upcoming.id === preloadedTrackIdRef.current) return;
+        if (!nextRef.current) {
+            nextRef.current = new Audio();
         }
-    }, [state.volume, state.playbackRate, state.pitchSemitones, effectivePlaybackRate]);
+        nextRef.current.src = `/storage/${upcoming.file_path}`;
+        nextRef.current.preload = 'auto';
+        nextRef.current.load();
+        preloadedTrackIdRef.current = upcoming.id;
+    }, [getNextTrackFor]);
+
+    useEffect(() => {
+        if (!activeRef.current) {
+            activeRef.current = new Audio();
+            activeRef.current.preload = 'auto';
+        }
+
+        const audio = activeRef.current;
+
+        const onLoadedMetadata = () => {
+            setState((prev) => ({ ...prev, duration: audio.duration || 0 }));
+        };
+
+        const onTimeUpdate = () => {
+            const time = audio.currentTime || 0;
+            setState((prev) => ({ ...prev, currentTime: time }));
+
+            const s = stateRef.current;
+            if (audio.duration && audio.duration - time < PRELOAD_THRESHOLD_S && s.loopMode !== 'one') {
+                preloadNext();
+            }
+        };
+
+        const onEnded = () => {
+            const s = stateRef.current;
+
+            if (s.loopMode === 'one') {
+                audio.currentTime = 0;
+                audio.play();
+                return;
+            }
+
+            if (s.playlist.length === 0) {
+                setState((prev) => ({ ...prev, isPlaying: false }));
+                return;
+            }
+
+            const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
+            if (!upcoming) {
+                setState((prev) => ({ ...prev, isPlaying: false }));
+                return;
+            }
+
+            const isLastTrack = (() => {
+                if (s.shuffle) return false;
+                const idx = s.playlist.findIndex((t) => t.id === s.currentTrack?.id);
+                return idx === s.playlist.length - 1;
+            })();
+
+            if (isLastTrack && s.loopMode === 'off') {
+                setState((prev) => ({ ...prev, isPlaying: false }));
+                return;
+            }
+
+            if (nextRef.current && preloadedTrackIdRef.current === upcoming.id) {
+                const old = activeRef.current;
+                activeRef.current = nextRef.current;
+                nextRef.current = old;
+                preloadedTrackIdRef.current = null;
+
+                const newActive = activeRef.current;
+                applyAudioProps(newActive);
+
+                newActive.onloadedmetadata = () => {
+                    setState((prev) => ({ ...prev, duration: newActive.duration || 0 }));
+                };
+                newActive.ontimeupdate = () => {
+                    const t = newActive.currentTime || 0;
+                    setState((prev) => ({ ...prev, currentTime: t }));
+                    if (newActive.duration && newActive.duration - t < PRELOAD_THRESHOLD_S && stateRef.current.loopMode !== 'one') {
+                        preloadNext();
+                    }
+                };
+                newActive.onended = onEnded;
+                newActive.onerror = () => setState((prev) => ({ ...prev, isPlaying: false }));
+
+                setState((prev) => ({
+                    ...prev,
+                    currentTrack: upcoming,
+                    currentTime: 0,
+                    duration: newActive.duration || 0,
+                    isPlaying: true,
+                }));
+
+                newActive.play().catch(() => {
+                    setState((prev) => ({ ...prev, isPlaying: false }));
+                });
+            } else {
+                audio.src = `/storage/${upcoming.file_path}`;
+                applyAudioProps(audio);
+                setState((prev) => ({
+                    ...prev,
+                    currentTrack: upcoming,
+                    currentTime: 0,
+                    duration: 0,
+                    isPlaying: true,
+                }));
+                audio.play().catch(() => {
+                    setState((prev) => ({ ...prev, isPlaying: false }));
+                });
+            }
+        };
+
+        const onError = () => {
+            setState((prev) => ({ ...prev, isPlaying: false }));
+        };
+
+        audio.addEventListener('loadedmetadata', onLoadedMetadata);
+        audio.addEventListener('timeupdate', onTimeUpdate);
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
+
+        return () => {
+            audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+            audio.removeEventListener('timeupdate', onTimeUpdate);
+            audio.removeEventListener('ended', onEnded);
+            audio.removeEventListener('error', onError);
+            audio.pause();
+        };
+    }, [applyAudioProps, getNextTrackFor, preloadNext]);
+
+    useEffect(() => {
+        if (activeRef.current) {
+            activeRef.current.volume = state.volume;
+            activeRef.current.preservesPitch = state.pitchSemitones === 0;
+            activeRef.current.playbackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
+        }
+    }, [state.volume, state.playbackRate, state.pitchSemitones]);
 
     const play = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.play();
-            setState((prev) => ({ ...prev, isPlaying: true }));
+        if (activeRef.current) {
+            activeRef.current.play().then(() => {
+                setState((prev) => ({ ...prev, isPlaying: true }));
+            }).catch(() => {});
         }
     }, []);
 
     const pause = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.pause();
+        if (activeRef.current) {
+            activeRef.current.pause();
             setState((prev) => ({ ...prev, isPlaying: false }));
         }
     }, []);
 
     const stop = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+        if (activeRef.current) {
+            activeRef.current.pause();
+            activeRef.current.currentTime = 0;
             setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
         }
     }, []);
 
     const seek = useCallback((time: number) => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = time;
+        if (activeRef.current) {
+            activeRef.current.currentTime = time;
             setState((prev) => ({ ...prev, currentTime: time }));
         }
     }, []);
 
-    const setVolume = useCallback((volume: number) => {
-        const clampedVolume = Math.max(0, Math.min(1, volume));
-        setState((prev) => ({ ...prev, volume: clampedVolume }));
+    const setVolume = useCallback((v: number) => {
+        setState((prev) => ({ ...prev, volume: Math.max(0, Math.min(1, v)) }));
     }, []);
 
     const setPlaybackRate = useCallback((rate: number) => {
-        const clampedRate = Math.max(0.5, Math.min(2, rate));
-        setState((prev) => ({ ...prev, playbackRate: clampedRate }));
+        setState((prev) => ({ ...prev, playbackRate: Math.max(0.5, Math.min(2, rate)) }));
     }, []);
 
     const setPitch = useCallback((semitones: number) => {
-        const clamped = Math.max(-12, Math.min(12, semitones));
-        setState((prev) => ({ ...prev, pitchSemitones: clamped }));
+        setState((prev) => ({ ...prev, pitchSemitones: Math.max(-12, Math.min(12, semitones)) }));
     }, []);
 
     const setLoopMode = useCallback((mode: 'off' | 'all' | 'one') => {
         setState((prev) => ({ ...prev, loopMode: mode }));
-        if (audioRef.current) {
-            audioRef.current.loop = mode === 'one';
-        }
+        if (activeRef.current) activeRef.current.loop = mode === 'one';
     }, []);
 
     const toggleShuffle = useCallback(() => {
         setState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
     }, []);
 
-    const loadTrack = useCallback((track: AudioVersion & { project?: ProjectInfo }) => {
-        if (audioRef.current) {
-            const url = `/storage/${track.file_path}`;
-            audioRef.current.src = url;
+    const loadTrack = useCallback((track: TrackWithProject & { project_info?: ProjectInfo }) => {
+        if (activeRef.current) {
+            const normalized: TrackWithProject = {
+                ...track,
+                project: track.project ?? track.project_info,
+            };
+            activeRef.current.src = `/storage/${normalized.file_path}`;
+            applyAudioProps(activeRef.current);
+            preloadedTrackIdRef.current = null;
             setState((prev) => ({
                 ...prev,
-                currentTrack: track,
+                currentTrack: normalized,
                 currentTime: 0,
                 duration: 0,
             }));
         }
-    }, []);
+    }, [applyAudioProps]);
 
-    const loadPlaylist = useCallback((tracks: (AudioVersion & { project?: ProjectInfo; project_info?: ProjectInfo })[], project?: ProjectInfo) => {
-        const withProject = tracks.map((t) => ({
-            ...t,
-            project: t.project ?? t.project_info ?? project,
-        }));
-        setState((prev) => ({
-            ...prev,
-            playlist: withProject,
-        }));
-        if (withProject.length > 0 && !state.currentTrack) {
-            loadTrack(withProject[0]);
-        }
-    }, [state.currentTrack, loadTrack]);
-
-    const getNextTrack = useCallback(() => {
-        if (state.playlist.length === 0) return null;
-
-        if (state.shuffle) {
-            const availableTracks = state.playlist.filter(
-                (track) => track.id !== state.currentTrack?.id
-            );
-            if (availableTracks.length === 0) return state.playlist[0];
-            return availableTracks[Math.floor(Math.random() * availableTracks.length)];
-        }
-
-        const currentIndex = state.playlist.findIndex(
-            (track) => track.id === state.currentTrack?.id
-        );
-        if (currentIndex === -1) return state.playlist[0];
-        const nextIndex = (currentIndex + 1) % state.playlist.length;
-        return state.playlist[nextIndex];
-    }, [state.playlist, state.currentTrack, state.shuffle]);
-
-    const getPreviousTrack = useCallback(() => {
-        if (state.playlist.length === 0) return null;
-
-        const currentIndex = state.playlist.findIndex(
-            (track) => track.id === state.currentTrack?.id
-        );
-        if (currentIndex === -1) return state.playlist[0];
-        const prevIndex = currentIndex === 0 ? state.playlist.length - 1 : currentIndex - 1;
-        return state.playlist[prevIndex];
-    }, [state.playlist, state.currentTrack]);
+    const loadPlaylist = useCallback(
+        (tracks: (TrackWithProject & { project_info?: ProjectInfo })[], project?: ProjectInfo) => {
+            const withProject = tracks.map((t) => ({
+                ...t,
+                project: t.project ?? t.project_info ?? project,
+            }));
+            setState((prev) => ({ ...prev, playlist: withProject }));
+            if (withProject.length > 0 && !stateRef.current.currentTrack) {
+                loadTrack(withProject[0]);
+            }
+        },
+        [loadTrack],
+    );
 
     const next = useCallback(() => {
-        const nextTrack = getNextTrack();
-        if (nextTrack) {
-            loadTrack(nextTrack);
-            // Small delay to ensure track is loaded
-            setTimeout(() => {
-                play();
-            }, 100);
+        const s = stateRef.current;
+        const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
+        if (upcoming) {
+            loadTrack(upcoming);
+            setTimeout(() => play(), 50);
         }
-    }, [getNextTrack, loadTrack, play]);
+    }, [getNextTrackFor, loadTrack, play]);
 
     const previous = useCallback(() => {
-        const prevTrack = getPreviousTrack();
-        if (prevTrack) {
-            loadTrack(prevTrack);
-            play();
+        const prev = getPrevTrack();
+        if (prev) {
+            loadTrack(prev);
+            setTimeout(() => play(), 50);
         }
-    }, [getPreviousTrack, loadTrack, play]);
+    }, [getPrevTrack, loadTrack, play]);
 
     const setCurrentTime = useCallback((time: number) => {
         setState((prev) => ({ ...prev, currentTime: time }));
     }, []);
 
-    const value: PlayerContextType = {
-        ...state,
-        play,
-        pause,
-        stop,
-        next,
-        previous,
-        seek,
-        setVolume,
-        setPlaybackRate,
-        setPitch,
-        setLoopMode,
-        toggleShuffle,
-        loadTrack,
-        loadPlaylist,
-        setCurrentTime,
-    };
-
-    return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
+    return (
+        <PlayerContext.Provider
+            value={{
+                ...state,
+                play,
+                pause,
+                stop,
+                next,
+                previous,
+                seek,
+                setVolume,
+                setPlaybackRate,
+                setPitch,
+                setLoopMode,
+                toggleShuffle,
+                loadTrack,
+                loadPlaylist,
+                setCurrentTime,
+            }}
+        >
+            {children}
+        </PlayerContext.Provider>
+    );
 }
 
 export function usePlayer() {

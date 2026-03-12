@@ -27,52 +27,7 @@ export default defineConfig({
     },
     build: {
         emptyOutDir: false,
-        rollupOptions: {
-            output: {
-                manualChunks: (id) => {
-                    // Separate vendor chunks for better caching and smaller initial load
-                    if (id.includes('node_modules')) {
-                        // React core
-                        if (id.includes('/react/') || id.includes('\\react\\')) {
-                            return 'react-core';
-                        }
-                        // React DOM
-                        if (id.includes('react-dom')) {
-                            return 'react-dom';
-                        }
-                        // Radix UI components (large library, split by package)
-                        if (id.includes('@radix-ui')) {
-                            // Group by base package to avoid too many chunks
-                            const match = id.match(/@radix-ui\/([^/]+)/);
-                            if (match) {
-                                const packageName = match[1];
-                                // Group smaller packages together
-                                if (['react-avatar', 'react-label', 'react-separator', 'react-slot'].includes(packageName)) {
-                                    return 'radix-ui-small';
-                                }
-                                return `radix-ui-${packageName}`;
-                            }
-                            return 'radix-ui';
-                        }
-                        // Inertia.js
-                        if (id.includes('@inertiajs')) {
-                            return 'inertia';
-                        }
-                        // Tailwind and related
-                        if (id.includes('tailwind') || id.includes('clsx') || id.includes('class-variance-authority')) {
-                            return 'tailwind-utils';
-                        }
-                        // Lucide icons (can be large)
-                        if (id.includes('lucide-react')) {
-                            return 'icons';
-                        }
-                        // Other vendor libraries
-                        return 'vendor';
-                    }
-                },
-            },
-        },
-        chunkSizeWarningLimit: 600, // Set to 600KB to catch large chunks
+        chunkSizeWarningLimit: 600,
     },
     server: {
         host: '0.0.0.0',

@@ -1,25 +1,16 @@
 import { Transition } from '@headlessui/react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import DeleteUser from '@/components/delete-user';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import { UserCircle } from 'lucide-react';
-import type { BreadcrumbItem, SharedData } from '@/types';
+import type { SharedData } from '@/types';
 import { FormEventHandler } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: edit().url,
-    },
-];
 
 export default function Profile({
     mustVerifyEmail,
@@ -66,18 +57,15 @@ export default function Profile({
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Profile settings" />
-
-            <h1 className="sr-only">Profile Settings</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading
-                        variant="small"
-                        title="Profile information"
-                        description="Update your name and email address"
-                    />
+                    <div>
+                        <h2 className="text-base font-medium">Profile information</h2>
+                        <p className="mt-0.5 text-sm text-muted-foreground">Update your name and email address</p>
+                    </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid gap-2">

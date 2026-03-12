@@ -2,10 +2,9 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import { User, UserCircle } from 'lucide-react';
+import { UserCircle } from 'lucide-react';
 
 interface Props {
     user: {
@@ -29,93 +28,71 @@ export default function ProfileShow({ user, profile }: Props) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         const formData = new FormData();
-        
-        if (data.full_name !== undefined) {
-            formData.append('full_name', data.full_name || '');
-        }
-        
-        if (data.avatar instanceof File) {
-            formData.append('avatar', data.avatar);
-        }
-        
+        if (data.full_name !== undefined) formData.append('full_name', data.full_name || '');
+        if (data.avatar instanceof File) formData.append('avatar', data.avatar);
         router.post('/profile', formData, {
             forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => {
-                setData('avatar', null);
-            },
+            onSuccess: () => setData('avatar', null),
         });
     };
 
     return (
         <AppLayout>
-            <Head title="Perfil" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div>
-                    <h1 className="text-2xl font-bold">Meu Perfil</h1>
-                    <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+            <Head title="Profile" />
+            <div className="flex flex-col gap-8">
+                <h1 className="text-2xl font-light tracking-tight">Profile</h1>
+
+                <div className="flex items-start gap-6">
+                    <div className="flex size-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+                        {profile?.avatar_path ? (
+                            <img
+                                src={`/storage/${profile.avatar_path}`}
+                                alt={profile.full_name || user.name}
+                                className="size-full object-cover"
+                            />
+                        ) : (
+                            <UserCircle className="size-10 text-muted-foreground" />
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-lg font-medium">{profile?.full_name || user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Informações Pessoais</CardTitle>
-                        <CardDescription>Atualize suas informações de perfil</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={submit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Email</label>
-                                <Input type="email" value={user.email} disabled />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    O email não pode ser alterado
-                                </p>
-                            </div>
+                <form onSubmit={submit} className="max-w-md space-y-4">
+                    <div>
+                        <label htmlFor="full_name" className="mb-1 block text-sm font-medium">
+                            Full name
+                        </label>
+                        <Input
+                            id="full_name"
+                            value={data.full_name || ''}
+                            onChange={(e) => setData('full_name', e.target.value)}
+                            className="border-border/40"
+                        />
+                        <InputError message={errors.full_name} />
+                    </div>
 
-                            <div>
-                                <label htmlFor="full_name" className="block text-sm font-medium mb-1">
-                                    Nome Completo
-                                </label>
-                                <Input
-                                    id="full_name"
-                                    type="text"
-                                    value={data.full_name || ''}
-                                    onChange={(e) => setData('full_name', e.target.value)}
-                                />
-                                <InputError message={errors.full_name} />
-                            </div>
+                    <div>
+                        <label htmlFor="avatar" className="mb-1 block text-sm font-medium">
+                            Photo
+                        </label>
+                        <Input
+                            id="avatar"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setData('avatar', e.target.files?.[0] || null)}
+                            className="border-border/40"
+                        />
+                        <InputError message={errors.avatar} />
+                    </div>
 
-                            <div>
-                                <label htmlFor="avatar" className="block text-sm font-medium mb-1">
-                                    Foto de Perfil
-                                </label>
-                                {profile?.avatar_path ? (
-                                    <div className="mb-2">
-                                        <img
-                                            src={`/storage/${profile.avatar_path}`}
-                                            alt={profile.full_name || user.name}
-                                            className="size-24 rounded-full object-cover"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="mb-2 size-24 rounded-full bg-muted flex items-center justify-center">
-                                        <UserCircle className="size-12 text-muted-foreground" />
-                                    </div>
-                                )}
-                                <Input
-                                    id="avatar"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => setData('avatar', e.target.files?.[0] || null)}
-                                />
-                                <InputError message={errors.avatar} />
-                            </div>
-
-                            <Button type="submit" disabled={processing}>
-                                {processing ? 'Salvando...' : 'Salvar Alterações'}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                    <Button type="submit" size="sm" disabled={processing}>
+                        {processing ? 'Saving...' : 'Save'}
+                    </Button>
+                </form>
             </div>
         </AppLayout>
     );
