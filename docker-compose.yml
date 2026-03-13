@@ -6,8 +6,8 @@ services:
       target: production
     restart: unless-stopped
     working_dir: /var/www/html
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     networks:
       - app-network
     depends_on:
