@@ -29,6 +29,13 @@ class AudioVersionController extends Controller
         ]);
     }
 
+    public function uploadPage(int $projectId)
+    {
+        return Inertia::render('audio/Upload', [
+            'projectId' => $projectId,
+        ]);
+    }
+
     public function store(StoreAudioVersionRequest $request, int $projectId)
     {
         $files = $request->file('files') ?? [$request->file('file')];

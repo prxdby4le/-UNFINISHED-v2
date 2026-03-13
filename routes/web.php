@@ -1,16 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    return Inertia::render('home');
-})->name('home');
-
-Route::get('dashboard', function () {
-    return redirect()->route('projects.index');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/', [\App\Http\Controllers\PageController::class, 'home'])->name('home');
+Route::get('dashboard', [\App\Http\Controllers\PageController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Public share routes (no auth)
 Route::get('/share/{token}', [\App\Http\Controllers\ProjectShareController::class, 'showPublic'])->name('share.show');
@@ -28,9 +21,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('projects/{projectId}/toggle-privacy', [\App\Http\Controllers\ProjectShareController::class, 'togglePrivacy'])->name('projects.toggle-privacy');
 
     // Audio versions routes
-    Route::get('projects/{projectId}/upload', function (int $projectId) {
-        return \Inertia\Inertia::render('audio/Upload', ['projectId' => $projectId]);
-    })->name('audio.upload');
+    Route::get('projects/{projectId}/upload', [\App\Http\Controllers\AudioVersionController::class, 'uploadPage'])->name('audio.upload');
     Route::post('projects/{projectId}/audio-versions', [\App\Http\Controllers\AudioVersionController::class, 'store'])->name('audio-versions.store');
     Route::put('audio-versions/{id}', [\App\Http\Controllers\AudioVersionController::class, 'update'])->name('audio-versions.update');
     Route::delete('audio-versions/{id}', [\App\Http\Controllers\AudioVersionController::class, 'destroy'])->name('audio-versions.destroy');
