@@ -53,8 +53,6 @@ services:
     image: postgres:16-alpine
     container_name: trashtalk-db-prod
     restart: unless-stopped
-    ports:
-      - "${DB_PORT:-5432}:5432"
     environment:
       - POSTGRES_DB=${DB_DATABASE:-trashtalk}
       - POSTGRES_USER=${DB_USERNAME:-trashtalk}
@@ -79,8 +77,6 @@ services:
     image: redis:7-alpine
     container_name: trashtalk-redis-prod
     restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - trashtalk-redis-data-prod:/data
     networks:
