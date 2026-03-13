@@ -15,7 +15,11 @@ if [ ! -L public/storage ]; then
     echo "[entrypoint] Storage symlink created"
 fi
 
-# Cache config and routes for performance (non-fatal)
+# Clear stale caches first, then rebuild
+php artisan config:clear 2>&1 || true
+php artisan route:clear 2>&1 || true
+php artisan view:clear 2>&1 || true
+
 php artisan config:cache 2>&1 || echo "[entrypoint] WARNING: config:cache failed, continuing..."
 php artisan route:cache 2>&1 || echo "[entrypoint] WARNING: route:cache failed, continuing..."
 php artisan view:cache 2>&1 || echo "[entrypoint] WARNING: view:cache failed, continuing..."
