@@ -4,14 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    image: trashtalk-records:app-prod
-    container_name: trashtalk-app-prod
     restart: unless-stopped
     working_dir: /var/www/html
     ports:
       - "${APP_PORT:-3000}:80"
     networks:
-      - trashtalk-network
+      - app-network
     depends_on:
       db:
         condition: service_healthy
@@ -23,7 +21,7 @@ services:
       - APP_KEY=${APP_KEY}
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-      - APP_URL=${APP_URL:-http://localhost:8001}
+      - APP_URL=${APP_URL:-http://localhost:3000}
       - LOG_CHANNEL=stack
       - LOG_LEVEL=${LOG_LEVEL:-error}
       - DB_CONNECTION=pgsql
@@ -40,16 +38,10 @@ services:
       - SESSION_DRIVER=redis
       - QUEUE_CONNECTION=redis
     volumes:
-      - trashtalk-storage-prod:/var/www/html/storage/app/public
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.service=app"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
+      - storage:/var/www/html/storage/app/public
 
   db:
     image: postgres:16-alpine
-    container_name: trashtalk-db-prod
     restart: unless-stopped
     environment:
       - POSTGRES_DB=${DB_DATABASE:-trashtalk}
@@ -57,14 +49,9 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - trashtalk-db-data-prod:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     networks:
-      - trashtalk-network
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.service=database"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
+      - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-trashtalk}"]
       interval: 10s
@@ -73,18 +60,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: trashtalk-redis-prod
     restart: unless-stopped
     volumes:
-      - trashtalk-redis-data-prod:/data
+      - redis-data:/data
     networks:
-      - trashtalk-network
+      - app-network
     command: redis-server --appendonly yes
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.service=cache"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -92,28 +73,10 @@ services:
       retries: 5
 
 volumes:
-  trashtalk-storage-prod:
-    name: trashtalk-storage-prod
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.type=storage"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
-  trashtalk-db-data-prod:
-    name: trashtalk-db-data-prod
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.type=database"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
-  trashtalk-redis-data-prod:
-    name: trashtalk-redis-data-prod
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.trashtalk.type=cache"
-      - "com.trashtalk.environment=production"
-      - "com.docker.compose.project=trashtalk-records"
+  storage:
+  db-data:
+  redis-data:
 
 networks:
-  trashtalk-network:
+  app-network:
     driver: bridge
