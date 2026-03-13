@@ -9,9 +9,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     ports:
-      - "${APP_PORT:-8001}:80"
-    expose:
-      - "80"
+      - "${APP_PORT:-3000}:80"
     networks:
       - trashtalk-network
     depends_on:
@@ -118,8 +116,4 @@ volumes:
 
 networks:
   trashtalk-network:
-    name: trashtalk-network
     driver: bridge
-    labels:
-      - "com.trashtalk.project=trashtalk-records"
-      - "com.docker.compose.project=trashtalk-records"
