@@ -116,7 +116,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                                 </Button>
                             )}
                             {permission === 'edit' && (
-                                <Link href={`/projects/${project.id}/upload`}>
+                                <Link href={`/share/${token}/upload`}>
                                     <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
                                         <Plus className="mr-1 size-3" />
                                         Add

@@ -12,8 +12,10 @@ Route::get('dashboard', function () {
     return redirect()->route('projects.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Public share route (no auth)
+// Public share routes (no auth)
 Route::get('/share/{token}', [\App\Http\Controllers\ProjectShareController::class, 'showPublic'])->name('share.show');
+Route::get('/share/{token}/upload', [\App\Http\Controllers\ProjectShareController::class, 'uploadPage'])->name('share.upload');
+Route::post('/share/{token}/upload', [\App\Http\Controllers\ProjectShareController::class, 'uploadStore'])->name('share.upload.store');
 
 // Projects routes
 Route::middleware(['auth'])->group(function () {

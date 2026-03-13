@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\ProjectShare;
+use App\Services\AudioService;
 use App\Services\ColorExtractionService;
+use App\Services\StorageService;
+use App\Repositories\AudioVersionRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -13,6 +16,9 @@ class ProjectShareController extends Controller
 {
     public function __construct(
         private ColorExtractionService $colorService,
+        private StorageService $storageService,
+        private AudioService $audioService,
+        private AudioVersionRepository $audioRepository,
     ) {}
 
     public function index(int $projectId)
@@ -103,5 +109,68 @@ class ProjectShareController extends Controller
             'colors' => $colors,
             'token' => $token,
         ]);
+    }
+
+    public function uploadPage(string $token)
+    {
+        $share = $this->resolveEditShare($token);
+
+        return Inertia::render('audio/SharedUpload', [
+            'projectId' => $share->project_id,
+            'token' => $token,
+            'projectName' => $share->project->name,
+        ]);
+    }
+
+    public function uploadStore(Request $request, string $token)
+    {
+        $share = $this->resolveEditShare($token);
+
+        $request->validate([
+            'files' => ['required', 'array'],
+            'files.*' => ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a'],
+        ]);
+
+        $files = $request->file('files');
+        $uploaded = 0;
+
+        foreach ($files as $file) {
+            if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $metadata = $this->audioService->extractMetadata($file->getRealPath());
+            $filePath = $this->storageService->storeFile($file, 'audio/versions');
+
+            $this->audioRepository->uploadAudio($share->project_id, [
+                'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'file_path' => $filePath,
+                'format' => $metadata['format'] ?? strtolower($file->getClientOriginalExtension()),
+                'duration' => $metadata['duration'],
+                'size' => $metadata['size'],
+            ]);
+            $uploaded++;
+        }
+
+        $message = $uploaded === 1
+            ? 'Audio enviado com sucesso!'
+            : "{$uploaded} audios enviados com sucesso!";
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    private function resolveEditShare(string $token): ProjectShare
+    {
+        $share = ProjectShare::where('token', $token)
+            ->where('is_active', true)
+            ->where('permission', 'edit')
+            ->with('project')
+            ->firstOrFail();
+
+        if (! $share->isValid()) {
+            abort($share->project->is_private ? 403 : 404);
+        }
+
+        return $share;
     }
 }
