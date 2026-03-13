@@ -23,7 +23,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-sm">
-                <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
                     <Link href="/projects" className="flex items-center gap-2">
                         <Music className="size-4" />
                         <span className="text-sm font-medium tracking-tight">[UNFINISHED]</span>
@@ -79,7 +79,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                 )}
             </header>
 
-            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8 pb-24">
+            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8 pb-24">
                 {children}
             </main>
 

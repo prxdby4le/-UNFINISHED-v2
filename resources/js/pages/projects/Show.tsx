@@ -100,10 +100,10 @@ export default function ProjectsShow({ project }: Props) {
     return (
         <AppLayout>
             <Head title={project.name} />
-            <div className="flex flex-col gap-8">
-                {/* Project header */}
-                <div className="flex gap-6">
-                    <div className="flex size-40 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted sm:size-48">
+            <div className="flex flex-col gap-8 md:flex-row md:gap-8">
+                {/* Left: Album art */}
+                <div className="flex-shrink-0 md:sticky md:top-20 md:self-start">
+                    <div className="mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm md:max-w-none md:w-[300px] lg:w-[340px]">
                         {project.cover_path ? (
                             <img
                                 src={`/storage/${project.cover_path}`}
@@ -111,145 +111,153 @@ export default function ProjectsShow({ project }: Props) {
                                 className="size-full object-cover"
                             />
                         ) : (
-                            <Music className="size-10 text-muted-foreground/30" />
+                            <Music className="size-16 text-muted-foreground/20" />
+                        )}
+                    </div>
+                </div>
+
+                {/* Right: Project info + tracklist */}
+                <div className="flex min-w-0 flex-1 flex-col gap-5">
+                    {/* Project info */}
+                    <div>
+                        <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">
+                            {project.name}
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {auth.user?.name} &middot; {project.audio_versions.length} track{project.audio_versions.length !== 1 ? 's' : ''}
+                            {project.audio_versions.length > 0 && (
+                                <> &middot; {formatTotalDuration(project.audio_versions)}</>
+                            )}
+                        </p>
+                        {project.description && (
+                            <p className="mt-2 text-sm text-muted-foreground/70 leading-relaxed">{project.description}</p>
                         )}
                     </div>
 
-                    <div className="flex flex-1 flex-col justify-end gap-3">
-                        <div>
-                            <h1 className="text-3xl font-light tracking-tight sm:text-4xl">
-                                {project.name}
-                            </h1>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {auth.user?.name} &middot; {project.audio_versions.length} tracks
-                                {project.audio_versions.length > 0 && (
-                                    <> &middot; {formatTotalDuration(project.audio_versions)}</>
-                                )}
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            {project.audio_versions.length > 0 && (
-                                <Button
-                                    size="sm"
-                                    onClick={() => handlePlay()}
-                                    className="h-9 rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
-                                >
-                                    <Play className="mr-1 size-3.5" />
-                                    Play
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                        {project.audio_versions.length > 0 && (
+                            <Button
+                                size="sm"
+                                onClick={() => handlePlay()}
+                                className="h-8 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90"
+                            >
+                                <Play className="mr-1 size-3" />
+                                Play
+                            </Button>
+                        )}
+                        <Link href={`/projects/${project.id}/upload`}>
+                            <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
+                                <Plus className="mr-1 size-3" />
+                                Add
+                            </Button>
+                        </Link>
+                        {project.audio_versions.length > 0 && (
+                            <a href={`/projects/${project.id}/download`}>
+                                <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
+                                    <Download className="mr-1 size-3" />
+                                    Download
                                 </Button>
-                            )}
-                            <Link href={`/projects/${project.id}/upload`}>
-                                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                                    <Plus className="mr-1 size-3.5" />
-                                    Add
-                                </Button>
-                            </Link>
-                            {project.audio_versions.length > 0 && (
-                                <a href={`/projects/${project.id}/download`}>
-                                    <Button variant="ghost" size="sm" className="text-muted-foreground">
-                                        <Download className="mr-1 size-3.5" />
-                                        Download
-                                    </Button>
-                                </a>
-                            )}
+                            </a>
+                        )}
+                        <div className="ml-auto flex items-center gap-0.5">
                             <Link href={`/projects/${project.id}/edit`}>
-                                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
-                                    <Edit className="size-3.5" />
+                                <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
+                                    <Edit className="size-3" />
                                 </Button>
                             </Link>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={handleDelete}
-                                className="size-8 text-muted-foreground hover:text-destructive"
+                                className="size-7 text-muted-foreground hover:text-destructive"
                             >
-                                <Trash2 className="size-3.5" />
+                                <Trash2 className="size-3" />
                             </Button>
                         </div>
                     </div>
-                </div>
 
-                {/* Tracklist */}
-                {project.audio_versions.length === 0 ? (
-                    <EmptyState
-                        icon={Music}
-                        title="No tracks yet"
-                        description="Upload audio files to get started"
-                        action={{ label: 'Upload', href: `/projects/${project.id}/upload` }}
-                    />
-                ) : (
-                    <div className="divide-y divide-border/30">
-                        {versions.map((version, index) => (
-                            <div
-                                key={version.id}
-                                draggable
-                                onDragStart={() => handleDragStart(index)}
-                                onDragOver={(e) => handleDragOver(e, index)}
-                                onDrop={(e) => e.preventDefault()}
-                                onDragEnd={handleDragEnd}
-                                className="group -mx-3 flex cursor-move items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/30"
-                            >
-                                <GripVertical className="size-3.5 flex-shrink-0 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground/50" />
-
-                                <button
-                                    onClick={() =>
-                                        isTrackPlaying(version) ? player.pause() : handlePlay(version)
-                                    }
-                                    className="flex size-7 flex-shrink-0 items-center justify-center"
+                    {/* Tracklist */}
+                    {project.audio_versions.length === 0 ? (
+                        <EmptyState
+                            icon={Music}
+                            title="No tracks yet"
+                            description="Upload audio files to get started"
+                            action={{ label: 'Upload', href: `/projects/${project.id}/upload` }}
+                        />
+                    ) : (
+                        <div className="divide-y divide-border/30">
+                            {versions.map((version, index) => (
+                                <div
+                                    key={version.id}
+                                    draggable
+                                    onDragStart={() => handleDragStart(index)}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDrop={(e) => e.preventDefault()}
+                                    onDragEnd={handleDragEnd}
+                                    className="group -mx-3 flex cursor-move items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/30"
                                 >
-                                    <span className="block group-hover:hidden text-xs tabular-nums text-muted-foreground">
-                                        {index + 1}
-                                    </span>
-                                    <span className="hidden group-hover:block">
-                                        {isTrackPlaying(version) ? (
-                                            <Pause className="size-3.5" />
-                                        ) : (
-                                            <Play className="size-3.5" />
-                                        )}
-                                    </span>
-                                </button>
+                                    <GripVertical className="size-3.5 flex-shrink-0 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground/50" />
 
-                                <div className="min-w-0 flex-1">
-                                    <p className={`truncate text-sm ${
-                                        player.currentTrack?.id === version.id
-                                            ? 'font-medium'
-                                            : 'font-light'
-                                    }`}>
-                                        {version.name}
-                                    </p>
-                                </div>
-
-                                <span className="hidden text-xs uppercase tracking-wider text-muted-foreground/60 sm:block font-mono">
-                                    {version.format || version.file_path?.split('.').pop() || ''}
-                                </span>
-
-                                <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
-                                    {formatDuration(version.duration)}
-                                </span>
-
-                                <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                    <a href={`/audio-versions/${version.id}/download`} download>
-                                        <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
-                                            <Download className="size-3" />
-                                        </Button>
-                                    </a>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 text-muted-foreground"
-                                        onClick={() => {
-                                            setEditingVersion(version);
-                                            setIsEditDialogOpen(true);
-                                        }}
+                                    <button
+                                        onClick={() =>
+                                            isTrackPlaying(version) ? player.pause() : handlePlay(version)
+                                        }
+                                        className="flex size-7 flex-shrink-0 items-center justify-center"
                                     >
-                                        <Edit className="size-3" />
-                                    </Button>
+                                        <span className="block group-hover:hidden text-xs tabular-nums text-muted-foreground">
+                                            {index + 1}
+                                        </span>
+                                        <span className="hidden group-hover:block">
+                                            {isTrackPlaying(version) ? (
+                                                <Pause className="size-3.5" />
+                                            ) : (
+                                                <Play className="size-3.5" />
+                                            )}
+                                        </span>
+                                    </button>
+
+                                    <div className="min-w-0 flex-1">
+                                        <p className={`truncate text-sm ${
+                                            player.currentTrack?.id === version.id
+                                                ? 'font-medium'
+                                                : 'font-light'
+                                        }`}>
+                                            {version.name}
+                                        </p>
+                                    </div>
+
+                                    <span className="hidden text-xs uppercase tracking-wider text-muted-foreground/60 sm:block font-mono">
+                                        {version.format || version.file_path?.split('.').pop() || ''}
+                                    </span>
+
+                                    <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
+                                        {formatDuration(version.duration)}
+                                    </span>
+
+                                    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <a href={`/audio-versions/${version.id}/download`} download>
+                                            <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
+                                                <Download className="size-3" />
+                                            </Button>
+                                        </a>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="size-7 text-muted-foreground"
+                                            onClick={() => {
+                                                setEditingVersion(version);
+                                                setIsEditDialogOpen(true);
+                                            }}
+                                        >
+                                            <Edit className="size-3" />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <EditAudioVersionDialog

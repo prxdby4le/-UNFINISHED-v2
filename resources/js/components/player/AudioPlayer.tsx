@@ -78,7 +78,7 @@ export default function AudioPlayer() {
                     />
                 </div>
 
-                <div className="mx-auto flex h-14 max-w-5xl items-center gap-4 px-6">
+                <div className="mx-auto flex h-14 max-w-4xl items-center gap-4 px-6">
                     {/* Track info */}
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                         <div className="flex size-9 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-muted">

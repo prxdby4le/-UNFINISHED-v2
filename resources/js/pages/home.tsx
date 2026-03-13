@@ -14,7 +14,7 @@ export default function Home() {
 
             <div className="flex min-h-screen flex-col bg-background text-foreground">
                 <header className="border-b border-border/30">
-                    <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+                    <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
                         <div className="flex items-center gap-2">
                             <Music className="size-4" />
                             <span className="text-sm font-medium tracking-tight">[UNFINISHED]</span>
@@ -82,7 +82,7 @@ export default function Home() {
                 </section>
 
                 <footer className="border-t border-border/30 px-6 py-6">
-                    <div className="mx-auto flex max-w-5xl items-center justify-between">
+                    <div className="mx-auto flex max-w-4xl items-center justify-between">
                         <span className="text-xs text-muted-foreground">
                             © {new Date().getFullYear()} [UNFINISHED]
                         </span>

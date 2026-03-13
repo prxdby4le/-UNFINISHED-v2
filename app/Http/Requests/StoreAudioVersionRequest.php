@@ -27,9 +27,9 @@ class StoreAudioVersionRequest extends FormRequest
 
         if ($this->hasFile('files')) {
             $rules['files'] = ['required', 'array'];
-            $rules['files.*'] = ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a', 'max:102400'];
+            $rules['files.*'] = ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a'];
         } else {
-            $rules['file'] = ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a', 'max:102400'];
+            $rules['file'] = ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a'];
         }
 
         return $rules;
