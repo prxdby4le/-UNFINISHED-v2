@@ -79,7 +79,7 @@ class ProjectController extends Controller
         });
 
         return Inertia::render('projects/Show', [
-            'project' => $project,
+            'project' => $project->load('activeShares'),
             'colors' => $colors,
         ]);
     }

@@ -7,12 +7,14 @@ import { type AudioVersion } from '@/repositories/audioRepository';
 import { usePlayer } from '@/providers/PlayerProvider';
 import EmptyState from '@/components/EmptyState';
 import { EditAudioVersionDialog } from '@/components/EditAudioVersionDialog';
-import { Edit, Trash2, Plus, Download, Play, Pause, Music, GripVertical } from 'lucide-react';
+import { ShareDialog } from '@/components/ShareDialog';
+import { Edit, Trash2, Plus, Download, Play, Pause, Music, GripVertical, Share2, Lock } from 'lucide-react';
 import type { SharedData } from '@/types';
 
 interface Props {
     project: Project & {
         audio_versions: AudioVersion[];
+        is_private?: boolean;
     };
 }
 
@@ -39,6 +41,8 @@ export default function ProjectsShow({ project }: Props) {
     const { auth } = usePage<SharedData>().props;
     const [editingVersion, setEditingVersion] = useState<AudioVersion | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+    const [isPrivate, setIsPrivate] = useState(project.is_private ?? false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [versions, setVersions] = useState<AudioVersion[]>(project.audio_versions);
 
@@ -161,6 +165,16 @@ export default function ProjectsShow({ project }: Props) {
                             </a>
                         )}
                         <div className="ml-auto flex items-center gap-0.5">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs text-muted-foreground"
+                                onClick={() => setIsShareDialogOpen(true)}
+                            >
+                                <Share2 className="mr-1 size-3" />
+                                Share
+                                {isPrivate && <Lock className="ml-1 size-2.5" />}
+                            </Button>
                             <Link href={`/projects/${project.id}/edit`}>
                                 <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
                                     <Edit className="size-3" />
@@ -265,6 +279,14 @@ export default function ProjectsShow({ project }: Props) {
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
                 onSuccess={() => router.reload({ only: ['project'] })}
+            />
+
+            <ShareDialog
+                projectId={project.id}
+                isPrivate={isPrivate}
+                open={isShareDialogOpen}
+                onOpenChange={setIsShareDialogOpen}
+                onPrivacyChange={setIsPrivate}
             />
         </AppLayout>
     );

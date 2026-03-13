@@ -12,10 +12,19 @@ Route::get('dashboard', function () {
     return redirect()->route('projects.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Public share route (no auth)
+Route::get('/share/{token}', [\App\Http\Controllers\ProjectShareController::class, 'showPublic'])->name('share.show');
+
 // Projects routes
 Route::middleware(['auth'])->group(function () {
     Route::resource('projects', \App\Http\Controllers\ProjectController::class);
-    
+
+    // Project sharing routes
+    Route::get('projects/{projectId}/shares', [\App\Http\Controllers\ProjectShareController::class, 'index'])->name('shares.index');
+    Route::post('projects/{projectId}/shares', [\App\Http\Controllers\ProjectShareController::class, 'store'])->name('shares.store');
+    Route::delete('shares/{shareId}', [\App\Http\Controllers\ProjectShareController::class, 'destroy'])->name('shares.destroy');
+    Route::post('projects/{projectId}/toggle-privacy', [\App\Http\Controllers\ProjectShareController::class, 'togglePrivacy'])->name('projects.toggle-privacy');
+
     // Audio versions routes
     Route::get('projects/{projectId}/upload', function (int $projectId) {
         return \Inertia\Inertia::render('audio/Upload', ['projectId' => $projectId]);

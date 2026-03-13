@@ -16,7 +16,15 @@ class Project extends Model
         'name',
         'description',
         'cover_path',
+        'is_private',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_private' => 'boolean',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -26,5 +34,15 @@ class Project extends Model
     public function audioVersions(): HasMany
     {
         return $this->hasMany(AudioVersion::class)->orderBy('order', 'asc')->orderBy('created_at', 'asc');
+    }
+
+    public function shares(): HasMany
+    {
+        return $this->hasMany(ProjectShare::class);
+    }
+
+    public function activeShares(): HasMany
+    {
+        return $this->shares()->where('is_active', true);
     }
 }
