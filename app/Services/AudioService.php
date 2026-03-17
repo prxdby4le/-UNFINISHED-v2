@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AudioService
 {
@@ -55,7 +56,7 @@ class AudioService
 
             // Check for errors
             if (isset($fileInfo['error'])) {
-                \Log::warning('getID3 error analyzing file', [
+                Log::warning('getID3 error analyzing file', [
                     'file' => $filePath,
                     'errors' => $fileInfo['error'],
                 ]);
@@ -95,7 +96,7 @@ class AudioService
 
             return $result;
         } catch (Exception $e) {
-            \Log::error('Error extracting audio metadata', [
+            Log::error('Error extracting audio metadata', [
                 'file' => $filePath,
                 'error' => $e->getMessage(),
             ]);

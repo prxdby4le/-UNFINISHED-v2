@@ -33,7 +33,9 @@ class Project extends Model
 
     public function audioVersions(): HasMany
     {
-        return $this->hasMany(AudioVersion::class)->orderBy('order', 'asc')->orderBy('created_at', 'asc');
+        /** @var \Illuminate\Database\Eloquent\Relations\HasMany $relation */
+        $relation = $this->hasMany(AudioVersion::class)->orderBy('order', 'asc')->orderBy('created_at', 'asc');
+        return $relation;
     }
 
     public function shares(): HasMany
@@ -43,6 +45,8 @@ class Project extends Model
 
     public function activeShares(): HasMany
     {
-        return $this->shares()->where('is_active', true);
+        /** @var \Illuminate\Database\Eloquent\Relations\HasMany $relation */
+        $relation = $this->shares()->where('is_active', true);
+        return $relation;
     }
 }
