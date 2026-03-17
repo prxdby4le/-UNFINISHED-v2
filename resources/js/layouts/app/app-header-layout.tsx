@@ -21,12 +21,15 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen w-full flex-col">
-            <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-sm">
-                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
-                    <Link href="/projects" className="flex items-center gap-2">
-                        <Music className="size-4" />
-                        <span className="text-sm font-medium tracking-tight">[UNFINISHED]</span>
+        <div className="flex min-h-screen w-full flex-col bg-gradient-mesh">
+            {/* Header with glass effect */}
+            <header className="sticky top-0 z-40 glass-strong">
+                <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+                    <Link href="/projects" className="group flex items-center gap-2.5">
+                        <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] shadow-sm transition-shadow group-hover:glow-primary-sm">
+                            <Music className="size-3.5 text-white" />
+                        </div>
+                        <span className="text-sm font-semibold tracking-tight">[UNFINISHED]</span>
                     </Link>
 
                     <nav className="hidden items-center gap-6 sm:flex">
@@ -42,15 +45,15 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="size-8 rounded-full">
-                                    <Avatar className="size-8">
+                                    <Avatar className="size-8 ring-1 ring-white/10">
                                         <AvatarImage src={user.avatar} alt={user.name} />
-                                        <AvatarFallback className="bg-muted text-xs">
+                                        <AvatarFallback className="bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] text-xs text-white">
                                             {getInitials(user.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuContent align="end" className="w-56 glass-strong rounded-xl">
                                 <UserMenuContent user={user} />
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -66,8 +69,11 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                     </div>
                 </div>
 
+                {/* Gradient accent line under header */}
+                <div className="gradient-line w-full" />
+
                 {mobileOpen && (
-                    <div className="border-t border-border/40 px-6 py-3 sm:hidden">
+                    <div className="border-t border-white/5 px-6 py-3 sm:hidden">
                         <Link
                             href="/projects"
                             className="block py-2 text-sm text-muted-foreground"
@@ -79,7 +85,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                 )}
             </header>
 
-            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8 pb-24">
+            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8 pb-24 fade-in">
                 {children}
             </main>
 
