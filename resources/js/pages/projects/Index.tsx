@@ -71,35 +71,33 @@ export default function ProjectsIndex({ projects, search: initialSearch = '' }: 
                         }
                     />
                 ) : (
-                    <div className="divide-y divide-border/40">
+                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                         {projects.map((project) => (
                             <Link
                                 key={project.id}
                                 href={`/projects/${project.id}`}
-                                className="group flex items-center gap-4 py-3 transition-colors hover:bg-muted/30 -mx-3 px-3 rounded-lg"
+                                className="group flex flex-col gap-3 rounded-xl p-3 transition-all duration-300 hover:bg-muted/40 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/5 border border-transparent hover:border-border/50"
                             >
-                                <div className="flex size-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted shadow-sm transition-shadow group-hover:shadow-md">
                                     {project.cover_path ? (
                                         <img
                                             src={`/storage/${project.cover_path}`}
                                             alt={project.name}
-                                            className="size-full object-cover"
+                                            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
                                     ) : (
-                                        <Music className="size-4 text-muted-foreground" />
+                                        <div className="flex size-full items-center justify-center bg-muted/50">
+                                            <Music className="size-8 text-muted-foreground/40 transition-transform duration-500 group-hover:scale-110" />
+                                        </div>
                                     )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium">{project.name}</p>
-                                    {project.description && (
-                                        <p className="truncate text-xs text-muted-foreground">
-                                            {project.description}
-                                        </p>
-                                    )}
+                                <div className="flex flex-col gap-0.5 px-1">
+                                    <p className="truncate text-base font-semibold leading-tight">{project.name}</p>
+                                    <p className="truncate text-xs text-muted-foreground">
+                                        {formatCount(project.audio_versions_count || 0)}
+                                    </p>
                                 </div>
-                                <span className="flex-shrink-0 text-xs text-muted-foreground">
-                                    {formatCount(project.audio_versions_count || 0)}
-                                </span>
                             </Link>
                         ))}
                     </div>

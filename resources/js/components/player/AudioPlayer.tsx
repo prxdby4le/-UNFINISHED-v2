@@ -64,16 +64,16 @@ export default function AudioPlayer() {
             {/* Mini player */}
             <div
                 onClick={() => setIsExpanded(true)}
-                className="fixed bottom-0 left-0 right-0 z-30 cursor-pointer border-t border-border/30 bg-background/95 backdrop-blur-sm transition-colors hover:bg-muted/20"
+                className="fixed bottom-0 left-0 right-0 z-30 cursor-pointer border-t border-border/20 bg-background/60 backdrop-blur-2xl transition-all hover:bg-background/80"
             >
                 {/* Thin progress bar at top */}
                 <div
                     ref={progressRef}
-                    className="h-0.5 w-full bg-muted"
+                    className="h-1 w-full bg-muted/50 transition-all hover:h-1.5"
                     onClick={(e) => { e.stopPropagation(); handleProgressClick(e); }}
                 >
                     <div
-                        className="h-full bg-foreground/60 transition-[width] duration-100"
+                        className="h-full bg-primary transition-[width] duration-100 ease-linear shadow-[0_0_10px_hsl(var(--primary))]"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -162,11 +162,17 @@ export default function AudioPlayer() {
                     </DialogHeader>
                     <div className="space-y-6">
                         <div className="flex gap-5 items-start">
-                            <div className="flex size-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
+                            <div className="relative flex size-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted shadow-lg">
                                 {project?.cover_path ? (
-                                    <img src={`/storage/${project.cover_path}`} alt="" className="size-full object-cover" />
+                                    <>
+                                        <div 
+                                            className="absolute inset-0 bg-cover bg-center opacity-40 blur-xl scale-150" 
+                                            style={{ backgroundImage: `url(/storage/${project.cover_path})` }}
+                                        />
+                                        <img src={`/storage/${project.cover_path}`} alt="" className="relative z-10 size-full object-cover rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.5)]" />
+                                    </>
                                 ) : (
-                                    <Music className="size-12 text-muted-foreground/30" />
+                                    <Music className="size-12 text-muted-foreground/30 relative z-10" />
                                 )}
                             </div>
                             <div className="min-w-0 flex-1 pt-1">
@@ -197,9 +203,9 @@ export default function AudioPlayer() {
                                 max={player.duration || 0}
                                 value={player.currentTime}
                                 onChange={handleExpandedSeek}
-                                className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-muted"
+                                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-muted/50"
                                 style={{
-                                    background: `linear-gradient(to right, currentColor 0%, currentColor ${progress}%, hsl(var(--muted)) ${progress}%, hsl(var(--muted)) 100%)`,
+                                    background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progress}%, hsl(var(--muted)) ${progress}%, hsl(var(--muted)) 100%)`,
                                 }}
                             />
                             <span className="w-9 text-xs tabular-nums text-muted-foreground">
@@ -222,9 +228,9 @@ export default function AudioPlayer() {
                             </Button>
                             <button
                                 onClick={player.isPlaying ? player.pause : player.play}
-                                className="flex size-12 items-center justify-center rounded-full bg-foreground text-background"
+                                className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-105"
                             >
-                                {player.isPlaying ? <Pause className="size-5" /> : <Play className="size-5 ml-0.5" />}
+                                {player.isPlaying ? <Pause className="size-6" /> : <Play className="size-6 ml-1" />}
                             </button>
                             <Button variant="ghost" size="icon" className="size-8" onClick={player.next}>
                                 <SkipForward className="size-4" />

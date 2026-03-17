@@ -1,6 +1,6 @@
-import AppHeaderLayout from '@/layouts/app/app-header-layout';
+import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import type { ReactNode } from 'react';
 
 export default ({ children }: { children: ReactNode }) => (
-    <AppHeaderLayout>{children}</AppHeaderLayout>
+    <AppSidebarLayout>{children}</AppSidebarLayout>
 );

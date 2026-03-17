@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [\App\Http\Controllers\PageController::class, 'home'])->name('home');
 Route::get('dashboard', [\App\Http\Controllers\PageController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
+// Google Auth
+Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleSocialiteController::class, 'redirectToGoogle'])->name('login.google');
+Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleSocialiteController::class, 'handleCallback']);
+
 // Public share routes (no auth)
 Route::get('/share/{token}', [\App\Http\Controllers\ProjectShareController::class, 'showPublic'])->name('share.show');
 Route::get('/share/{token}/upload', [\App\Http\Controllers\ProjectShareController::class, 'uploadPage'])->name('share.upload');
