@@ -266,6 +266,18 @@ export default function ProjectsShow({ project }: Props) {
                                         >
                                             <Edit className="size-3" />
                                         </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="size-7 text-muted-foreground hover:text-destructive"
+                                            onClick={() => {
+                                                if (confirm('Deletar essa faixa? Isso não pode ser desfeito.')) {
+                                                    router.delete(`/audio-versions/${version.id}`, { preserveScroll: true });
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="size-3" />
+                                        </Button>
                                     </div>
                                 </div>
                             ))}

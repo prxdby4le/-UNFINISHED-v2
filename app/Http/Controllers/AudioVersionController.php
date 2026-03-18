@@ -45,6 +45,7 @@ class AudioVersionController extends Controller
             return redirect()->back()->with('error', 'Nenhum arquivo enviado.');
         }
 
+        $project = \App\Models\Project::where('user_id', auth()->id())->findOrFail($projectId);
         $uploaded = 0;
         foreach ($files as $file) {
             if (!$file || !$file->isValid()) {
@@ -63,7 +64,7 @@ class AudioVersionController extends Controller
                 'size' => $metadata['size'],
             ];
 
-            $this->repository->uploadAudio($projectId, $data);
+            $this->repository->uploadAudio($project, $data);
             $uploaded++;
         }
 

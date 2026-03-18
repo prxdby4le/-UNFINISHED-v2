@@ -20,10 +20,8 @@ class AudioVersionRepository
             ->get();
     }
 
-    public function uploadAudio(int $projectId, array $data): AudioVersion
+    public function uploadAudio(Project $project, array $data): AudioVersion
     {
-        $project = Project::where('user_id', Auth::id())->findOrFail($projectId);
-
         $data['project_id'] = $project->id;
         
         // Set order to be the last in the project

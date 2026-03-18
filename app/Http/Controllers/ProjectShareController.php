@@ -139,11 +139,12 @@ class ProjectShareController extends Controller
                 continue;
             }
 
-            $metadata = $this->audioService->extractMetadata($file->getRealPath());
+            $metadata = $this->audioService->extractMetadata($file->getRealPath(), $file->getClientOriginalName());
             $filePath = $this->storageService->storeFile($file, 'audio/versions');
 
-            $this->audioRepository->uploadAudio($share->project_id, [
+            $this->audioRepository->uploadAudio($share->project, [
                 'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'original_filename' => $file->getClientOriginalName(),
                 'file_path' => $filePath,
                 'format' => $metadata['format'] ?? strtolower($file->getClientOriginalExtension()),
                 'duration' => $metadata['duration'],
