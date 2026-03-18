@@ -31,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('audio-versions/{id}', [\App\Http\Controllers\AudioVersionController::class, 'destroy'])->name('audio-versions.destroy');
     Route::post('projects/{projectId}/audio-versions/reorder', [\App\Http\Controllers\AudioVersionController::class, 'reorder'])->name('audio-versions.reorder');
     Route::post('audio-versions/{id}/toggle-master', [\App\Http\Controllers\AudioVersionController::class, 'toggleMaster'])->name('audio-versions.toggle-master');
+    Route::get('audio-versions/{id}/history', [\App\Http\Controllers\AudioVersionController::class, 'history'])->name('audio-versions.history');
+    Route::post('audio-versions/{id}/new-version', [\App\Http\Controllers\AudioVersionController::class, 'newVersion'])->name('audio-versions.new-version');
+    Route::put('audio-versions/{id}/set-active', [\App\Http\Controllers\AudioVersionController::class, 'setActive'])->name('audio-versions.set-active');
     
     // Feedback routes
     Route::get('audio-versions/{audioVersionId}/feedback', [\App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');

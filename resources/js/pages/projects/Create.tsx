@@ -19,14 +19,14 @@ export default function ProjectsCreate() {
 
     return (
         <AppLayout>
-            <Head title="New Project" />
+            <Head title="Novo Projeto" />
             <div className="flex flex-col gap-6">
-                <h1 className="text-2xl font-light tracking-tight">New Project</h1>
+                <h1 className="text-2xl font-light tracking-tight">Novo Projeto</h1>
 
                 <form onSubmit={submit} className="max-w-md space-y-4">
                     <div>
                         <label htmlFor="name" className="mb-1 block text-sm font-medium">
-                            Name
+                            Nome
                         </label>
                         <Input
                             id="name"
@@ -40,7 +40,7 @@ export default function ProjectsCreate() {
 
                     <div>
                         <label htmlFor="description" className="mb-1 block text-sm font-medium">
-                            Description
+                            Descrição
                         </label>
                         <textarea
                             id="description"
@@ -54,7 +54,7 @@ export default function ProjectsCreate() {
 
                     <div>
                         <label htmlFor="cover" className="mb-1 block text-sm font-medium">
-                            Cover art
+                            Capa
                         </label>
                         <Input
                             id="cover"
@@ -68,10 +68,10 @@ export default function ProjectsCreate() {
 
                     <div className="flex gap-2">
                         <Button type="submit" size="sm" disabled={processing}>
-                            {processing ? 'Creating...' : 'Create'}
+                            {processing ? 'Criando...' : 'Criar'}
                         </Button>
                         <Button type="button" variant="ghost" size="sm" onClick={() => window.history.back()}>
-                            Cancel
+                            Cancelar
                         </Button>
                     </div>
                 </form>

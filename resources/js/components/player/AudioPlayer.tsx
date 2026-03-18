@@ -83,7 +83,7 @@ export default function AudioPlayer() {
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                         <div className="flex size-9 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
                             {project?.cover_path ? (
-                                <img src={`/storage/${project.cover_path}`} alt="" className="size-full object-cover" />
+                                <img src={project.cover_url || `/storage/${project.cover_path}`} alt="" className="size-full object-cover" />
                             ) : (
                                 <Music className="size-3.5 text-muted-foreground" />
                             )}
@@ -169,9 +169,9 @@ export default function AudioPlayer() {
                                     <>
                                         <div 
                                             className="absolute inset-0 bg-cover bg-center opacity-40 blur-xl scale-150" 
-                                            style={{ backgroundImage: `url(/storage/${project.cover_path})` }}
+                                            style={{ backgroundImage: `url(${project.cover_url || `/storage/${project.cover_path}`})` }}
                                         />
-                                        <img src={`/storage/${project.cover_path}`} alt="" className="relative z-10 size-full object-cover rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.5)]" />
+                                        <img src={project.cover_url || `/storage/${project.cover_path}`} alt="" className="relative z-10 size-full object-cover rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.5)]" />
                                     </>
                                 ) : (
                                     <Music className="size-12 text-muted-foreground/30 relative z-10" />

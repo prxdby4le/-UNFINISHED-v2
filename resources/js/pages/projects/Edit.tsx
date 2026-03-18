@@ -39,14 +39,14 @@ export default function ProjectsEdit({ project }: Props) {
 
     return (
         <AppLayout>
-            <Head title={`Edit: ${project.name}`} />
+            <Head title={`Editar: ${project.name}`} />
             <div className="flex flex-col gap-6">
-                <h1 className="text-2xl font-light tracking-tight">Edit Project</h1>
+                <h1 className="text-2xl font-light tracking-tight">Editar Projeto</h1>
 
                 <form onSubmit={submit} className="max-w-md space-y-4">
                     <div>
                         <label htmlFor="name" className="mb-1 block text-sm font-medium">
-                            Name
+                            Nome
                         </label>
                         <Input
                             id="name"
@@ -60,7 +60,7 @@ export default function ProjectsEdit({ project }: Props) {
 
                     <div>
                         <label htmlFor="description" className="mb-1 block text-sm font-medium">
-                            Description
+                            Descrição
                         </label>
                         <textarea
                             id="description"
@@ -74,12 +74,12 @@ export default function ProjectsEdit({ project }: Props) {
 
                     <div>
                         <label htmlFor="cover" className="mb-1 block text-sm font-medium">
-                            Cover art
+                            Capa
                         </label>
                         {project.cover_path && (
                             <img
-                                src={`/storage/${project.cover_path}`}
-                                alt={project.name}
+                                src={project.cover_url || `/storage/${project.cover_path}`}
+                                alt="Capa atual"
                                 className="mb-2 size-24 rounded-lg object-cover"
                             />
                         )}
@@ -95,10 +95,10 @@ export default function ProjectsEdit({ project }: Props) {
 
                     <div className="flex gap-2">
                         <Button type="submit" size="sm" disabled={processing}>
-                            {processing ? 'Saving...' : 'Save'}
+                            {processing ? 'Salvando...' : 'Salvar'}
                         </Button>
                         <Button type="button" variant="ghost" size="sm" onClick={() => window.history.back()}>
-                            Cancel
+                            Cancelar
                         </Button>
                     </div>
                 </form>

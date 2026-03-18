@@ -6,13 +6,13 @@ import SettingsLayout from '@/layouts/settings/layout';
 export default function Appearance() {
     return (
         <AppLayout>
-            <Head title="Appearance" />
+            <Head title="Aparência" />
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <div>
-                        <h2 className="text-base font-medium">Appearance</h2>
-                        <p className="mt-0.5 text-sm text-muted-foreground">Choose your preferred theme</p>
+                        <h2 className="text-base font-medium">Aparência</h2>
+                        <p className="mt-0.5 text-sm text-muted-foreground">Escolha seu tema preferido</p>
                     </div>
                     <AppearanceTabs />
                 </div>

@@ -16,7 +16,8 @@ class StorageService
      */
     public function storeFile(UploadedFile $file, string $directory = 'uploads'): string
     {
-        return $file->store($directory, 'public');
+        $disk = config('filesystems.default');
+        return $file->store($directory, $disk);
     }
 
     /**
@@ -27,8 +28,9 @@ class StorageService
      */
     public function deleteFile(string $path): bool
     {
-        if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->delete($path);
+        $disk = config('filesystems.default');
+        if (Storage::disk($disk)->exists($path)) {
+            return Storage::disk($disk)->delete($path);
         }
 
         return false;
@@ -42,7 +44,8 @@ class StorageService
      */
     public function getFileUrl(string $path): string
     {
-        return Storage::disk('public')->url($path);
+        $disk = config('filesystems.default');
+        return Storage::disk($disk)->url($path);
     }
 
     /**
@@ -53,8 +56,9 @@ class StorageService
      */
     public function getFileContents(string $path): ?string
     {
-        if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->get($path);
+        $disk = config('filesystems.default');
+        if (Storage::disk($disk)->exists($path)) {
+            return Storage::disk($disk)->get($path);
         }
 
         return null;

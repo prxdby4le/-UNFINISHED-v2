@@ -15,6 +15,7 @@ class AudioVersionRepository
         $project = Project::where('user_id', Auth::id())->findOrFail($projectId);
 
         return AudioVersion::where('project_id', $project->id)
+            ->where('is_active', true)
             ->orderBy('order', 'asc')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -24,9 +25,15 @@ class AudioVersionRepository
     {
         $data['project_id'] = $project->id;
         
-        // Set order to be the last in the project
-        $maxOrder = AudioVersion::where('project_id', $project->id)->max('order') ?? 0;
-        $data['order'] = $maxOrder + 1;
+        if (!isset($data['track_id'])) {
+            $data['track_id'] = (string) \Illuminate\Support\Str::uuid();
+            $data['is_active'] = true;
+        }
+
+        if (!isset($data['order'])) {
+            $maxOrder = AudioVersion::where('project_id', $project->id)->max('order') ?? 0;
+            $data['order'] = $maxOrder + 1;
+        }
 
         return AudioVersion::create($data);
     }
@@ -76,6 +83,33 @@ class AudioVersionRepository
 
         // Set this version as master
         $version->update(['is_master' => true]);
+
+        return $version->fresh();
+    }
+
+    public function getVersionHistory(int $id): Collection
+    {
+        $version = AudioVersion::whereHas('project', function ($query) {
+            $query->where('user_id', Auth::id());
+        })->findOrFail($id);
+
+        return AudioVersion::where('track_id', $version->track_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    public function setActiveVersion(int $id): AudioVersion
+    {
+        $version = AudioVersion::whereHas('project', function ($query) {
+            $query->where('user_id', Auth::id());
+        })->findOrFail($id);
+
+        // Deactivate all versions in the same track group
+        AudioVersion::where('track_id', $version->track_id)
+            ->update(['is_active' => false]);
+
+        // Set this version as active
+        $version->update(['is_active' => true]);
 
         return $version->fresh();
     }

@@ -26,12 +26,29 @@ class Project extends Model
         ];
     }
 
+    protected $appends = ['cover_url'];
+
+    public function getCoverUrlAttribute(): ?string
+    {
+        if (!$this->cover_path) {
+            return null;
+        }
+        return app(\App\Services\StorageService::class)->getFileUrl($this->cover_path);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     public function audioVersions(): HasMany
+    {
+        /** @var \Illuminate\Database\Eloquent\Relations\HasMany $relation */
+        $relation = $this->hasMany(AudioVersion::class)->where('is_active', true)->orderBy('order', 'asc')->orderBy('created_at', 'asc');
+        return $relation;
+    }
+
+    public function allAudioVersions(): HasMany
     {
         /** @var \Illuminate\Database\Eloquent\Relations\HasMany $relation */
         $relation = $this->hasMany(AudioVersion::class)->orderBy('order', 'asc')->orderBy('created_at', 'asc');

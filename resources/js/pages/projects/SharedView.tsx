@@ -61,14 +61,14 @@ export default function SharedView({ project, permission, colors, token }: Props
                         <span className="text-sm font-medium tracking-tight">[UNFINISHED]</span>
                     </Link>
                     <span className="rounded-full border border-border/40 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {permission === 'view' ? 'view only' : 'edit access'}
+                        {permission === 'view' ? 'somente visualização' : 'acesso de edição'}
                     </span>
                 </div>
             </header>
 
             {/* Content */}
             <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8 pb-24">
-                <Head title={`${project.name} — Shared`} />
+                <Head title={`${project.name} — Compartilhado`} />
 
                 <div className="flex flex-col gap-8 md:flex-row md:gap-8">
                     {/* Left: Album art */}
@@ -76,7 +76,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                         <div className="mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm md:max-w-none md:w-[300px] lg:w-[340px]">
                             {project.cover_path ? (
                                 <img
-                                    src={`/storage/${project.cover_path}`}
+                                    src={project.cover_url || `/storage/${project.cover_path}`}
                                     alt={project.name}
                                     className="size-full object-cover"
                                 />
@@ -93,7 +93,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                                 {project.name}
                             </h1>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                {project.user?.name || 'Unknown'} &middot; {project.audio_versions.length} track{project.audio_versions.length !== 1 ? 's' : ''}
+                                {project.user?.name || 'Desconhecido'} &middot; {project.audio_versions.length} faixa{project.audio_versions.length !== 1 ? 's' : ''}
                                 {project.audio_versions.length > 0 && (
                                     <> &middot; {formatTotalDuration(project.audio_versions)}</>
                                 )}
@@ -112,14 +112,14 @@ export default function SharedView({ project, permission, colors, token }: Props
                                     className="h-8 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90"
                                 >
                                     <Play className="mr-1 size-3" />
-                                    Play
+                                    Tocar
                                 </Button>
                             )}
                             {permission === 'edit' && (
                                 <Link href={`/share/${token}/upload`}>
                                     <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
                                         <Plus className="mr-1 size-3" />
-                                        Add
+                                        Adicionar
                                     </Button>
                                 </Link>
                             )}
@@ -129,7 +129,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                         {project.audio_versions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
                                 <Music className="size-8 text-muted-foreground/20" />
-                                <p className="mt-3 text-sm text-muted-foreground">No tracks yet</p>
+                                <p className="mt-3 text-sm text-muted-foreground">Nenhuma faixa ainda</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-border/30">

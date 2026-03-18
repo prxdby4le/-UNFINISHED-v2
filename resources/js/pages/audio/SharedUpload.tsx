@@ -73,7 +73,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                 setTimeout(() => router.visit(`/share/${token}`), 800);
             },
             onError: (errors) => {
-                const msg = Object.values(errors).flat().join(', ') || 'Upload failed';
+                const msg = Object.values(errors).flat().join(', ') || 'Falha no upload';
                 setFiles((prev) =>
                     prev.map((f) =>
                         f.status === 'uploading'
@@ -95,7 +95,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                         {projectName}
                     </Link>
                     <span className="rounded-full border border-border/40 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                        edit access
+                        acesso de edição
                     </span>
                 </div>
             </header>
@@ -115,9 +115,9 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                     >
                         <UploadIcon className="size-6 text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">
-                            Drop audio files here or{' '}
+                            Solte os arquivos de áudio aqui ou{' '}
                             <label htmlFor="file-input" className="cursor-pointer underline underline-offset-4 hover:text-foreground">
-                                browse
+                                procure
                             </label>
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground/60">WAV, FLAC, MP3, AIFF, M4A</p>
@@ -135,7 +135,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-muted-foreground">
-                                    {files.length} file{files.length !== 1 ? 's' : ''} selected
+                                    {files.length} arquivo{files.length !== 1 ? 's' : ''} selecionado{files.length !== 1 ? 's' : ''}
                                 </p>
                                 <Button
                                     size="sm"
@@ -143,7 +143,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                                     disabled={processing}
                                     className="bg-foreground text-background hover:bg-foreground/90"
                                 >
-                                    {processing ? 'Uploading...' : 'Upload All'}
+                                    {processing ? 'Enviando...' : 'Enviar Todos'}
                                 </Button>
                             </div>
 

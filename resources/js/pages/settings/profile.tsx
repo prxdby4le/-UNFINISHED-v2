@@ -23,6 +23,7 @@ export default function Profile({
         id: number;
         full_name?: string;
         avatar_path?: string;
+        avatar_url?: string;
     };
 }) {
     const { auth } = usePage<SharedData>().props;
@@ -58,18 +59,18 @@ export default function Profile({
 
     return (
         <AppLayout>
-            <Head title="Profile settings" />
+            <Head title="Configurações de perfil" />
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <div>
-                        <h2 className="text-base font-medium">Profile information</h2>
-                        <p className="mt-0.5 text-sm text-muted-foreground">Update your name and email address</p>
+                        <h2 className="text-base font-medium">Informações do perfil</h2>
+                        <p className="mt-0.5 text-sm text-muted-foreground">Atualize seu nome e endereço de e-mail</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="name">Name</Label>
+                                        <Label htmlFor="name">Nome</Label>
 
                                         <Input
                                             id="name"
@@ -78,7 +79,7 @@ export default function Profile({
                                             onChange={(e) => setData('name', e.target.value)}
                                             required
                                             autoComplete="name"
-                                            placeholder="Full name"
+                                            placeholder="Nome completo"
                                         />
 
                                         <InputError
@@ -88,7 +89,7 @@ export default function Profile({
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="email">Email address</Label>
+                                        <Label htmlFor="email">E-mail</Label>
 
                                         <Input
                                             id="email"
@@ -98,7 +99,7 @@ export default function Profile({
                                             onChange={(e) => setData('email', e.target.value)}
                                             required
                                             autoComplete="username"
-                                            placeholder="Email address"
+                                            placeholder="E-mail"
                                         />
 
                                         <InputError
@@ -108,7 +109,7 @@ export default function Profile({
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="full_name">Full Name</Label>
+                                        <Label htmlFor="full_name">Nome Completo</Label>
 
                                         <Input
                                             id="full_name"
@@ -116,7 +117,7 @@ export default function Profile({
                                             value={data.full_name || ''}
                                             onChange={(e) => setData('full_name', e.target.value)}
                                             autoComplete="name"
-                                            placeholder="Full name"
+                                            placeholder="Nome completo"
                                         />
 
                                         <InputError
@@ -126,12 +127,12 @@ export default function Profile({
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="avatar">Profile Photo</Label>
+                                        <Label htmlFor="avatar">Foto do Perfil</Label>
                                         
                                         {profile?.avatar_path ? (
                                             <div className="mb-2">
                                                 <img
-                                                    src={`/storage/${profile.avatar_path}`}
+                                                    src={profile.avatar_url || `/storage/${profile.avatar_path}`}
                                                     alt={profile.full_name || auth.user.name}
                                                     className="size-24 rounded-full object-cover"
                                                 />
@@ -159,24 +160,23 @@ export default function Profile({
                                     auth.user.email_verified_at === null && (
                                         <div>
                                             <p className="-mt-4 text-sm text-muted-foreground">
-                                                Your email address is
-                                                unverified.{' '}
+                                                Seu endereço de e-mail não está
+                                                verificado.{' '}
                                                 <Link
                                                     href={send()}
                                                     as="button"
                                                     className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                                 >
-                                                    Click here to resend the
-                                                    verification email.
+                                                    Clique aqui para reenviar o
+                                                    e-mail de verificação.
                                                 </Link>
                                             </p>
 
                                             {status ===
                                                 'verification-link-sent' && (
                                                 <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has
-                                                    been sent to your email
-                                                    address.
+                                                    Um novo link de verificação
+                                                    foi enviado para seu e-mail.
                                                 </div>
                                             )}
                                         </div>
@@ -188,7 +188,7 @@ export default function Profile({
                                             disabled={processing}
                                             data-test="update-profile-button"
                                         >
-                                            Save
+                                            Salvar
                                         </Button>
 
                                         <Transition
@@ -199,7 +199,7 @@ export default function Profile({
                                             leaveTo="opacity-0"
                                         >
                                             <p className="text-sm text-neutral-600">
-                                                Saved
+                                                Salvo
                                             </p>
                                         </Transition>
                                     </div>

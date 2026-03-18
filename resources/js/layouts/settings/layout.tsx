@@ -10,10 +10,10 @@ import { edit as editPassword } from '@/routes/user-password';
 import type { NavItem } from '@/types';
 
 const tabs: NavItem[] = [
-    { title: 'Profile', href: edit(), icon: null },
-    { title: 'Password', href: editPassword(), icon: null },
-    { title: 'Two-Factor', href: show(), icon: null },
-    { title: 'Appearance', href: editAppearance(), icon: null },
+    { title: 'Perfil', href: edit(), icon: null },
+    { title: 'Senha', href: editPassword(), icon: null },
+    { title: 'Dois Fatores', href: show(), icon: null },
+    { title: 'Aparência', href: editAppearance(), icon: null },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
@@ -26,9 +26,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-2xl font-light tracking-tight">Settings</h1>
+                <h1 className="text-2xl font-light tracking-tight">Configurações</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Manage your profile and account settings
+                    Gerencie seu perfil e configurações da conta
                 </p>
             </div>
 

@@ -123,6 +123,12 @@ class ProjectController extends Controller
             $this->storageService->deleteFile($project->cover_path);
         }
 
+        foreach ($project->audioVersions as $version) {
+            if ($version->file_path) {
+                $this->storageService->deleteFile($version->file_path);
+            }
+        }
+
         $this->repository->deleteProject($id);
 
         return redirect()->route('projects.index')

@@ -13,6 +13,7 @@ class AudioVersion extends Model
 
     protected $fillable = [
         'project_id',
+        'track_id',
         'name',
         'original_filename',
         'file_path',
@@ -20,6 +21,7 @@ class AudioVersion extends Model
         'duration',
         'size',
         'is_master',
+        'is_active',
         'order',
     ];
 
@@ -29,6 +31,16 @@ class AudioVersion extends Model
         'size' => 'integer',
         'order' => 'integer',
     ];
+
+    protected $appends = ['url'];
+
+    public function getUrlAttribute(): ?string
+    {
+        if (!$this->file_path) {
+            return null;
+        }
+        return app(\App\Services\StorageService::class)->getFileUrl($this->file_path);
+    }
 
     public function project(): BelongsTo
     {

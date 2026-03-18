@@ -13,7 +13,7 @@ interface Props {
 }
 
 function formatCount(count: number): string {
-    return `${count} track${count !== 1 ? 's' : ''}`;
+    return `${count} faixa${count !== 1 ? 's' : ''}`;
 }
 
 export default function ProjectsIndex({ projects, search: initialSearch = '' }: Props) {
@@ -32,10 +32,10 @@ export default function ProjectsIndex({ projects, search: initialSearch = '' }: 
 
     return (
         <AppLayout>
-            <Head title="Projects" />
+            <Head title="Projetos" />
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between float-up">
-                    <h1 className="text-2xl font-light tracking-tight">Projects</h1>
+                    <h1 className="text-2xl font-light tracking-tight">Projetos</h1>
                     <Link
                         href="/projects/create"
                         className="flex size-9 items-center justify-center rounded-xl glass text-muted-foreground transition-all hover:text-foreground hover:glow-primary-sm"
@@ -48,7 +48,7 @@ export default function ProjectsIndex({ projects, search: initialSearch = '' }: 
                     <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="text"
-                        placeholder="Search projects..."
+                        placeholder="Buscar projetos..."
                         value={search || ''}
                         onChange={(e) => setSearch(e.target.value)}
                         className="glass-input pl-9 rounded-xl"
@@ -58,15 +58,15 @@ export default function ProjectsIndex({ projects, search: initialSearch = '' }: 
                 {projects.length === 0 ? (
                     <EmptyState
                         icon={FolderOpen}
-                        title={search ? 'No projects found' : 'No projects yet'}
+                        title={search ? 'Nenhum projeto encontrado' : 'Nenhum projeto ainda'}
                         description={
                             search
-                                ? 'Try a different search term'
-                                : 'Create your first project to get started'
+                                ? 'Tente um termo de busca diferente'
+                                : 'Crie seu primeiro projeto para começar'
                         }
                         action={
                             !search
-                                ? { label: 'Create project', href: '/projects/create' }
+                                ? { label: 'Criar projeto', href: '/projects/create' }
                                 : undefined
                         }
                     />
@@ -84,7 +84,7 @@ export default function ProjectsIndex({ projects, search: initialSearch = '' }: 
                                 <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted/50 shadow-sm transition-all group-hover:shadow-lg group-hover:shadow-[var(--glow-color)]">
                                     {project.cover_path ? (
                                         <img
-                                            src={`/storage/${project.cover_path}`}
+                                            src={project.cover_url || `/storage/${project.cover_path}`}
                                             alt={project.name}
                                             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />

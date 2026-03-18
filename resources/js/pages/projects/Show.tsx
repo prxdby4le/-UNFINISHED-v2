@@ -58,7 +58,7 @@ export default function ProjectsShow({ project }: Props) {
     }, [project.id, project.audio_versions, project.name, project.cover_path]);
 
     const handleDelete = () => {
-        if (confirm('Delete this project? This cannot be undone.')) {
+        if (confirm('Excluir este projeto? Isso não pode ser desfeito.')) {
             router.delete(`/projects/${project.id}`);
         }
     };
@@ -110,7 +110,7 @@ export default function ProjectsShow({ project }: Props) {
                     <div className="mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm md:max-w-none md:w-[300px] lg:w-[340px]">
                         {project.cover_path ? (
                             <img
-                                src={`/storage/${project.cover_path}`}
+                                src={project.cover_url || `/storage/${project.cover_path}`}
                                 alt={project.name}
                                 className="size-full object-cover"
                             />
@@ -128,7 +128,7 @@ export default function ProjectsShow({ project }: Props) {
                             {project.name}
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {auth.user?.name} &middot; {project.audio_versions.length} track{project.audio_versions.length !== 1 ? 's' : ''}
+                            {auth.user?.name} &middot; {project.audio_versions.length} faixa{project.audio_versions.length !== 1 ? 's' : ''}
                             {project.audio_versions.length > 0 && (
                                 <> &middot; {formatTotalDuration(project.audio_versions)}</>
                             )}
@@ -147,13 +147,13 @@ export default function ProjectsShow({ project }: Props) {
                                 className="h-8 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90"
                             >
                                 <Play className="mr-1 size-3" />
-                                Play
+                                Tocar
                             </Button>
                         )}
                         <Link href={`/projects/${project.id}/upload`}>
                             <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
                                 <Plus className="mr-1 size-3" />
-                                Add
+                                Adicionar
                             </Button>
                         </Link>
                         {project.audio_versions.length > 0 && (
@@ -172,7 +172,7 @@ export default function ProjectsShow({ project }: Props) {
                                 onClick={() => setIsShareDialogOpen(true)}
                             >
                                 <Share2 className="mr-1 size-3" />
-                                Share
+                                Compartilhar
                                 {isPrivate && <Lock className="ml-1 size-2.5" />}
                             </Button>
                             <Link href={`/projects/${project.id}/edit`}>
@@ -195,8 +195,8 @@ export default function ProjectsShow({ project }: Props) {
                     {project.audio_versions.length === 0 ? (
                         <EmptyState
                             icon={Music}
-                            title="No tracks yet"
-                            description="Upload audio files to get started"
+                            title="Nenhuma faixa ainda"
+                            description="Faça upload de arquivos de áudio para começar"
                             action={{ label: 'Upload', href: `/projects/${project.id}/upload` }}
                         />
                     ) : (

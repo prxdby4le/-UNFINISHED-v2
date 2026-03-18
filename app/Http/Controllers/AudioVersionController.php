@@ -90,14 +90,16 @@ class AudioVersionController extends Controller
             $query->where('user_id', auth()->id());
         })->findOrFail($id);
 
-        // Delete file if exists
-        if ($version->file_path) {
-            $this->storageService->deleteFile($version->file_path);
+        $versions = \App\Models\AudioVersion::where('track_id', $version->track_id)->get();
+
+        foreach ($versions as $v) {
+            if ($v->file_path) {
+                $this->storageService->deleteFile($v->file_path);
+            }
+            $v->delete();
         }
 
-        $this->repository->deleteVersion($id);
-
-        return redirect()->back()->with('success', 'Versão deletada com sucesso!');
+        return redirect()->back()->with('success', 'Faixa e seu histórico foram deletados!');
     }
 
     public function reorder(Request $request, int $projectId)
@@ -117,5 +119,60 @@ class AudioVersionController extends Controller
         $version = $this->repository->toggleMaster($id);
 
         return redirect()->back()->with('success', 'Versão master atualizada!');
+    }
+
+    public function history(int $id)
+    {
+        $history = $this->repository->getVersionHistory($id);
+        return response()->json($history);
+    }
+
+    public function newVersion(Request $request, int $id)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:wav,flac,mp3,aiff,m4a'],
+        ]);
+
+        $parentVersion = \App\Models\AudioVersion::whereHas('project', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->findOrFail($id);
+
+        $file = $request->file('file');
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'Arquivo inválido.');
+        }
+
+        $metadata = $this->audioService->extractMetadata($file->getRealPath(), $file->getClientOriginalName());
+        $filePath = $this->storageService->storeFile($file, 'audio/versions');
+
+        if (!$filePath) {
+            throw new \Exception("Falha ao salvar o arquivo. getErrorMessage: " . $file->getErrorMessage() . " Extension: " . $file->extension());
+        }
+
+        $data = [
+            'track_id' => $parentVersion->track_id,
+            'order' => $parentVersion->order,
+            'is_active' => true,
+            'name' => $parentVersion->name,
+            'original_filename' => $file->getClientOriginalName(),
+            'file_path' => $filePath,
+            'format' => $metadata['format'] ?? strtolower($file->getClientOriginalExtension()),
+            'duration' => $metadata['duration'],
+            'size' => $metadata['size'],
+        ];
+
+        \App\Models\AudioVersion::where('track_id', $parentVersion->track_id)
+            ->update(['is_active' => false]);
+
+        $project = \App\Models\Project::findOrFail($parentVersion->project_id);
+        $this->repository->uploadAudio($project, $data);
+
+        return redirect()->back()->with('success', 'Nova versão enviada!');
+    }
+
+    public function setActive(int $id)
+    {
+        $this->repository->setActiveVersion($id);
+        return redirect()->back()->with('success', 'Versão ativada!');
     }
 }

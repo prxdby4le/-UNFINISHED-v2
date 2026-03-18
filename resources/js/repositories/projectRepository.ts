@@ -6,6 +6,7 @@ export interface Project {
     name: string;
     description?: string;
     cover_path?: string;
+    cover_url?: string;
     created_at: string;
     updated_at: string;
     audio_versions_count?: number;

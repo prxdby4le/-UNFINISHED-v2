@@ -16,6 +16,7 @@ interface Props {
         id: number;
         full_name?: string;
         avatar_path?: string;
+        avatar_url?: string;
     };
 }
 
@@ -39,15 +40,15 @@ export default function ProfileShow({ user, profile }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Profile" />
+            <Head title="Perfil" />
             <div className="flex flex-col gap-8">
-                <h1 className="text-2xl font-light tracking-tight">Profile</h1>
+                <h1 className="text-2xl font-light tracking-tight">Perfil</h1>
 
                 <div className="flex items-start gap-6">
                     <div className="flex size-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                         {profile?.avatar_path ? (
                             <img
-                                src={`/storage/${profile.avatar_path}`}
+                                src={profile.avatar_url || `/storage/${profile.avatar_path}`}
                                 alt={profile.full_name || user.name}
                                 className="size-full object-cover"
                             />
@@ -64,7 +65,7 @@ export default function ProfileShow({ user, profile }: Props) {
                 <form onSubmit={submit} className="max-w-md space-y-4">
                     <div>
                         <label htmlFor="full_name" className="mb-1 block text-sm font-medium">
-                            Full name
+                            Nome completo
                         </label>
                         <Input
                             id="full_name"
@@ -77,7 +78,7 @@ export default function ProfileShow({ user, profile }: Props) {
 
                     <div>
                         <label htmlFor="avatar" className="mb-1 block text-sm font-medium">
-                            Photo
+                            Foto
                         </label>
                         <Input
                             id="avatar"
@@ -90,7 +91,7 @@ export default function ProfileShow({ user, profile }: Props) {
                     </div>
 
                     <Button type="submit" size="sm" disabled={processing}>
-                        {processing ? 'Saving...' : 'Save'}
+                        {processing ? 'Salvando...' : 'Salvar'}
                     </Button>
                 </form>
             </div>

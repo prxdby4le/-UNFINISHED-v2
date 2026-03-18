@@ -6,9 +6,12 @@ interface ProjectInfo {
     id: number;
     name: string;
     cover_path?: string;
+    cover_url?: string;
 }
 
 type TrackWithProject = AudioVersion & { project?: ProjectInfo };
+
+// ... (skip unchanged lines, but I need to do this via multi_replace_file_content or narrow chunks)
 
 interface PlayerState {
     currentTrack: TrackWithProject | null;
@@ -98,7 +101,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!nextRef.current) {
             nextRef.current = new Audio();
         }
-        nextRef.current.src = `/storage/${upcoming.file_path}`;
+        nextRef.current.src = upcoming.url || `/storage/${upcoming.file_path}`;
         nextRef.current.preload = 'auto';
         nextRef.current.load();
         preloadedTrackIdRef.current = upcoming.id;
@@ -191,7 +194,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                     setState((prev) => ({ ...prev, isPlaying: false }));
                 });
             } else {
-                audio.src = `/storage/${upcoming.file_path}`;
+                audio.src = upcoming.url || `/storage/${upcoming.file_path}`;
                 applyAudioProps(audio);
                 setState((prev) => ({
                     ...prev,
@@ -245,7 +248,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         }
 
         const fac = new FastAverageColor();
-        const imageUrl = `/storage/${coverPath}`;
+        const imageUrl = state.currentTrack?.project?.cover_url || `/storage/${coverPath}`;
 
         fac.getColorAsync(imageUrl, { crossOrigin: 'anonymous' })
             .then((color) => {
@@ -331,7 +334,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 ...track,
                 project: track.project ?? track.project_info,
             };
-            activeRef.current.src = `/storage/${normalized.file_path}`;
+            activeRef.current.src = normalized.url || `/storage/${normalized.file_path}`;
             applyAudioProps(activeRef.current);
             preloadedTrackIdRef.current = null;
             setState((prev) => ({

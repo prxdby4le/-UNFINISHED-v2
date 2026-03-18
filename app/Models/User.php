@@ -43,6 +43,8 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    protected $appends = ['avatar_url'];
+
     protected function casts(): array
     {
         return [
@@ -50,6 +52,14 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+        return app(\App\Services\StorageService::class)->getFileUrl($this->avatar_path);
     }
 
     public function projects()

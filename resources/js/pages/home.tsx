@@ -10,7 +10,7 @@ export default function Home() {
 
     return (
         <>
-            <Head title="[UNFINISHED] — A sacred place for your work-in-progress music" />
+            <Head title="[UNFINISHED] — Um lugar sagrado para suas músicas em progresso" />
 
             <div className="relative flex min-h-screen flex-col bg-gradient-mesh text-foreground overflow-hidden">
                 {/* Floating background orbs */}
@@ -33,7 +33,7 @@ export default function Home() {
                             {isAuthenticated ? (
                                 <Link href={dashboard()}>
                                     <Button variant="ghost" size="sm" className="text-sm">
-                                        Enter App
+                                        Entrar
                                         <ArrowRight className="ml-1.5 size-3.5" />
                                     </Button>
                                 </Link>
@@ -46,7 +46,7 @@ export default function Home() {
                                     </Link>
                                     <Link href={register()}>
                                         <Button size="sm" className="bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] text-white border-0 shadow-lg hover:opacity-90 transition-opacity">
-                                            Sign Up
+                                            Criar Conta
                                         </Button>
                                     </Link>
                                 </>
@@ -60,17 +60,17 @@ export default function Home() {
                 <section className="relative z-10 flex flex-1 items-center justify-center px-6">
                     <div className="mx-auto max-w-3xl text-center float-up">
                         <h1 className="text-5xl font-light tracking-tight sm:text-6xl md:text-7xl">
-                            A sacred place for your{' '}
-                            <span className="font-normal gradient-text">work-in-progress</span> music
+                            Um lugar sagrado para suas{' '}
+                            <span className="font-normal gradient-text">músicas em progresso</span>
                         </h1>
                         <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto">
-                            Store, organize, and listen to your music in lossless quality with gapless playback.
+                            Armazene, organize e ouça suas músicas em qualidade lossless com reprodução contínua.
                         </p>
                         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                             {isAuthenticated ? (
                                 <Link href={dashboard()}>
                                     <Button size="lg" className="bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] text-white border-0 shadow-lg hover:shadow-xl hover:glow-primary-sm transition-all px-8">
-                                        Enter App
+                                        Entrar
                                         <ArrowRight className="ml-2 size-4" />
                                     </Button>
                                 </Link>
@@ -78,7 +78,7 @@ export default function Home() {
                                 <>
                                     <Link href={register()}>
                                         <Button size="lg" className="bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] text-white border-0 shadow-lg hover:shadow-xl hover:glow-primary-sm transition-all px-8">
-                                            Get Started
+                                            Começar
                                             <ArrowRight className="ml-2 size-4" />
                                         </Button>
                                     </Link>
