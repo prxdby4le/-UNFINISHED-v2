@@ -55,7 +55,7 @@ export default function SharedView({ project, permission, colors, token }: Props
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             {/* Minimal header */}
             <header className="border-b border-border/30">
-                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
+                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 sm:px-6">
                     <Link href="/" className="flex items-center gap-2">
                         <Music className="size-4" />
                         <span className="text-sm font-medium tracking-tight">[UNFINISHED]</span>
@@ -67,13 +67,13 @@ export default function SharedView({ project, permission, colors, token }: Props
             </header>
 
             {/* Content */}
-            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8 pb-24">
+            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8">
                 <Head title={`${project.name} — Compartilhado`} />
 
                 <div className="flex flex-col gap-8 md:flex-row md:gap-8">
                     {/* Left: Album art */}
                     <div className="flex-shrink-0 md:sticky md:top-20 md:self-start">
-                        <div className="mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm md:max-w-none md:w-[300px] lg:w-[340px]">
+                        <div className="mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm sm:max-w-[300px] md:max-w-none md:w-[300px] lg:w-[340px]">
                             {project.cover_path ? (
                                 <img
                                     src={project.cover_url || `/storage/${project.cover_path}`}
@@ -111,15 +111,15 @@ export default function SharedView({ project, permission, colors, token }: Props
                                     onClick={() => handlePlay()}
                                     className="h-8 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90"
                                 >
-                                    <Play className="mr-1 size-3" />
-                                    Tocar
+                                    <Play className="size-3 sm:mr-1" />
+                                    <span className="hidden sm:inline">Tocar</span>
                                 </Button>
                             )}
                             {permission === 'edit' && (
                                 <Link href={`/share/${token}/upload`}>
                                     <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground">
-                                        <Plus className="mr-1 size-3" />
-                                        Adicionar
+                                        <Plus className="size-3 sm:mr-1" />
+                                        <span className="hidden sm:inline">Adicionar</span>
                                     </Button>
                                 </Link>
                             )}
@@ -136,7 +136,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                                 {project.audio_versions.map((version, index) => (
                                     <div
                                         key={version.id}
-                                        className="group -mx-3 flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/30"
+                                        className="group -mx-2 flex items-center gap-2 rounded-lg px-2 py-3 transition-colors hover:bg-muted/30 sm:-mx-3 sm:gap-3 sm:px-3 sm:py-2.5"
                                     >
                                         <button
                                             onClick={() =>

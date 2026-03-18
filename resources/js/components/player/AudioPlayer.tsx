@@ -78,7 +78,7 @@ export default function AudioPlayer() {
                     />
                 </div>
 
-                <div className="mx-auto flex h-14 max-w-4xl items-center gap-4 px-6">
+                <div className="mx-auto flex h-14 max-w-4xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
                     {/* Track info */}
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                         <div className="flex size-9 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
@@ -158,13 +158,13 @@ export default function AudioPlayer() {
 
             {/* Expanded player */}
             <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-                <DialogContent className="max-w-lg" aria-describedby={undefined}>
+                <DialogContent className="max-w-lg w-[calc(100vw-2rem)] sm:w-full" aria-describedby={undefined}>
                     <DialogHeader>
                         <DialogTitle className="sr-only">Player</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6">
-                        <div className="flex gap-5 items-start">
-                            <div className="relative flex size-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted shadow-lg">
+                        <div className="flex gap-4 items-start sm:gap-5">
+                            <div className="relative flex size-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted shadow-lg sm:size-32">
                                 {project?.cover_path ? (
                                     <>
                                         <div 

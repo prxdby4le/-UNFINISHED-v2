@@ -22,7 +22,7 @@ export default function Home() {
 
                 {/* Glass header */}
                 <header className="relative z-10 glass-strong">
-                    <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+                    <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
                         <div className="flex items-center gap-2.5">
                             <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] shadow-sm">
                                 <Music className="size-3.5 text-white" />
@@ -57,16 +57,16 @@ export default function Home() {
                 </header>
 
                 {/* Hero */}
-                <section className="relative z-10 flex flex-1 items-center justify-center px-6">
+                <section className="relative z-10 flex flex-1 items-center justify-center px-4 sm:px-6">
                     <div className="mx-auto max-w-3xl text-center float-up">
-                        <h1 className="text-5xl font-light tracking-tight sm:text-6xl md:text-7xl">
+                        <h1 className="text-3xl font-light tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
                             Um lugar sagrado para suas{' '}
                             <span className="font-normal gradient-text">músicas em progresso</span>
                         </h1>
-                        <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto">
+                        <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto sm:mt-6 sm:text-lg">
                             Armazene, organize e ouça suas músicas em qualidade lossless com reprodução contínua.
                         </p>
-                        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
                             {isAuthenticated ? (
                                 <Link href={dashboard()}>
                                     <Button size="lg" className="bg-gradient-to-r from-[var(--gradient-from)] to-[var(--gradient-to)] text-white border-0 shadow-lg hover:shadow-xl hover:glow-primary-sm transition-all px-8">
@@ -94,7 +94,7 @@ export default function Home() {
                 </section>
 
                 {/* Footer */}
-                <footer className="relative z-10 px-6 py-6">
+                <footer className="relative z-10 px-4 py-6 sm:px-6">
                     <div className="gradient-line w-full mb-6" />
                     <div className="mx-auto flex max-w-5xl items-center justify-between">
                         <span className="text-xs text-muted-foreground">

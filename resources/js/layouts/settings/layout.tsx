@@ -32,13 +32,13 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 </p>
             </div>
 
-            <nav className="flex gap-1 border-b border-border/40">
+            <nav className="flex gap-1 border-b border-border/40 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 {tabs.map((tab, i) => (
                     <Link
                         key={`${toUrl(tab.href)}-${i}`}
                         href={tab.href}
                         className={cn(
-                            'px-4 py-2 text-sm transition-colors',
+                            'whitespace-nowrap px-3 py-2 text-sm transition-colors sm:px-4',
                             isCurrentUrl(tab.href)
                                 ? 'border-b-2 border-foreground font-medium text-foreground'
                                 : 'text-muted-foreground hover:text-foreground',

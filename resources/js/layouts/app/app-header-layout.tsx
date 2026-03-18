@@ -24,7 +24,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen w-full flex-col bg-gradient-mesh">
             {/* Header with glass effect */}
             <header className="sticky top-0 z-40 glass-strong">
-                <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+                <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
                     <Link href="/projects" className="group flex items-center gap-2.5">
                         <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-from)] to-[var(--gradient-to)] shadow-sm transition-shadow group-hover:glow-primary-sm">
                             <Music className="size-3.5 text-white" />
@@ -37,7 +37,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                             href="/projects"
                             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
-                            Projects
+                            Projetos
                         </Link>
                     </nav>
 
@@ -79,13 +79,13 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                             className="block py-2 text-sm text-muted-foreground"
                             onClick={() => setMobileOpen(false)}
                         >
-                            Projects
+                            Projetos
                         </Link>
                     </div>
                 )}
             </header>
 
-            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8 pb-24 fade-in">
+            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8 fade-in">
                 {children}
             </main>
 

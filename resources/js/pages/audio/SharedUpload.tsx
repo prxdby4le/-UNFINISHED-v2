@@ -89,7 +89,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             <header className="border-b border-border/30">
-                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
+                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 sm:px-6">
                     <Link href={`/share/${token}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                         <ArrowLeft className="size-3.5" />
                         {projectName}
@@ -100,7 +100,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                 </div>
             </header>
 
-            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8 pb-24">
+            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8">
                 <Head title={`Upload — ${projectName}`} />
                 <div className="flex flex-col gap-6">
                     <h1 className="text-2xl font-light tracking-tight">Upload</h1>
@@ -109,7 +109,7 @@ export default function SharedUpload({ projectId, token, projectName }: Props) {
                         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                         onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
                         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
-                        className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-16 transition-colors ${
+                        className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-10 transition-colors sm:py-16 ${
                             isDragging ? 'border-foreground/30 bg-muted/30' : 'border-border/40'
                         }`}
                     >
