@@ -31,6 +31,9 @@ services:
       - CACHE_DRIVER=redis
       - SESSION_DRIVER=redis
       - QUEUE_CONNECTION=redis
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:8000/auth/google/callback}
     command: sh -c "php artisan wayfinder:generate --with-form || true && php-fpm"
     labels:
       - "com.trashtalk.project=trashtalk-records"
@@ -106,7 +109,7 @@ services:
       retries: 5
 
   node:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: trashtalk-node-dev
     restart: unless-stopped
     working_dir: /var/www/html

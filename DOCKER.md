@@ -15,7 +15,7 @@ cp .env.docker.example .env
 make -f docker/Makefile setup
 
 # Ou manualmente
-docker-compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 ### 3. Acessar aplicação
@@ -47,11 +47,11 @@ make -f docker/Makefile shell
 
 ## 🏗️ Serviços
 
-- **app**: Laravel (PHP 8.2-FPM)
+- **app**: Laravel (PHP 8.4-FPM)
 - **nginx**: Servidor web
 - **db**: PostgreSQL 16
 - **redis**: Redis 7
-- **node**: Node.js 20 (Vite)
+- **node**: Node.js 22 (Vite)
 
 ## 📚 Documentação Completa
 
