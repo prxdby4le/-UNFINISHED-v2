@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('google_id')->nullable()->unique()->after('id');
-            $table->string('avatar_url')->nullable()->after('password');
+        Schema::table('audio_versions', function (Blueprint $table) {
+            $table->string('original_filename')->nullable()->after('name');
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['google_id', 'avatar_url']);
+        Schema::table('audio_versions', function (Blueprint $table) {
+            $table->dropColumn('original_filename');
         });
     }
 };

@@ -56,6 +56,7 @@ class AudioVersionController extends Controller
 
             $data = [
                 'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'original_filename' => $file->getClientOriginalName(),
                 'file_path' => $filePath,
                 'format' => $metadata['format'] ?? strtolower($file->getClientOriginalExtension()),
                 'duration' => $metadata['duration'],

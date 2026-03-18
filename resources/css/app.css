@@ -152,6 +152,33 @@
     --glow-color: oklch(0.55 0.25 280 / 0.25);
 }
 
+/* Dynamic Adaptive Theming overrides */
+html[style*="--theme-base-color"] {
+    --background: color-mix(in srgb, var(--theme-base-color) 6%, oklch(0.98 0 0));
+}
+
+html.dark[style*="--theme-base-color"] {
+    --background: color-mix(in srgb, var(--theme-base-color) 12%, oklch(0.08 0.005 280));
+    --muted: color-mix(in srgb, var(--theme-base-color) 15%, oklch(0.16 0.008 280));
+    --card: color-mix(in srgb, var(--theme-base-color) 8%, oklch(0.12 0.008 280));
+}
+
+@property --gradient-from {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --gradient-to {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+@property --gradient-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
 @layer base {
     * {
         @apply border-border;
@@ -162,6 +189,7 @@
         font-feature-settings: "kern" 1, "liga" 1;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.5s ease, --gradient-from 1s ease, --gradient-to 1s ease, --gradient-accent 1s ease;
     }
 
     h1, h2, h3, h4, h5, h6 {

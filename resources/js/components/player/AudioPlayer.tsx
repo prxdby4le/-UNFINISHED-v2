@@ -64,12 +64,12 @@ export default function AudioPlayer() {
             {/* Mini player */}
             <div
                 onClick={() => setIsExpanded(true)}
-                className="fixed bottom-0 left-0 right-0 z-30 cursor-pointer border-t border-border/20 bg-background/60 backdrop-blur-2xl transition-all hover:bg-background/80"
+                className="fixed bottom-0 left-0 right-0 z-30 cursor-pointer border-t border-border/40 bg-background/85 dark:bg-background/80 backdrop-blur-2xl transition-all hover:bg-background/95 dark:hover:bg-background/90 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
             >
                 {/* Thin progress bar at top */}
                 <div
                     ref={progressRef}
-                    className="h-1 w-full bg-muted/50 transition-all hover:h-1.5"
+                    className="h-1 w-full bg-muted/80 dark:bg-muted/50 transition-all hover:h-1.5 relative group"
                     onClick={(e) => { e.stopPropagation(); handleProgressClick(e); }}
                 >
                     <div
@@ -138,16 +138,18 @@ export default function AudioPlayer() {
                             {player.volume === 0 ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
                         </button>
                         {showVolume && (
-                            <div className="absolute bottom-full right-0 mb-2 rounded-lg border border-border/40 bg-popover p-3 shadow-lg">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={player.volume}
-                                    onChange={(e) => player.setVolume(parseFloat(e.target.value))}
-                                    className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-muted"
-                                />
+                            <div className="absolute bottom-full right-0 pb-2">
+                                <div className="rounded-lg border border-border/40 bg-popover p-3 shadow-lg">
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.01"
+                                        value={player.volume}
+                                        onChange={(e) => player.setVolume(parseFloat(e.target.value))}
+                                        className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-muted"
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
@@ -181,6 +183,12 @@ export default function AudioPlayer() {
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     {format}{track.duration ? ` · ${formatTime(track.duration)}` : ''}
                                 </p>
+                                {track.original_filename && (
+                                    <p className="mt-1.5 text-xs text-muted-foreground/60 flex items-center gap-1.5" title="Arquivo Original">
+                                        <Music className="size-3" />
+                                        <span className="truncate">{track.original_filename}</span>
+                                    </p>
+                                )}
                             </div>
                         </div>
 

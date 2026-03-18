@@ -14,6 +14,7 @@ class AudioVersion extends Model
     protected $fillable = [
         'project_id',
         'name',
+        'original_filename',
         'file_path',
         'format',
         'duration',

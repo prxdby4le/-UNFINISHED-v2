@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect } from 'react';
 import { type AudioVersion } from '@/repositories/audioRepository';
+import { FastAverageColor } from 'fast-average-color';
 
 interface ProjectInfo {
     id: number;
@@ -230,6 +231,48 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             activeRef.current.playbackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
         }
     }, [state.volume, state.playbackRate, state.pitchSemitones]);
+
+    // Adaptive Theming Based on Cover Art
+    useEffect(() => {
+        const coverPath = state.currentTrack?.project?.cover_path;
+
+        if (!coverPath) {
+            document.documentElement.style.removeProperty('--gradient-from');
+            document.documentElement.style.removeProperty('--gradient-to');
+            document.documentElement.style.removeProperty('--gradient-accent');
+            document.documentElement.style.removeProperty('--theme-base-color');
+            return;
+        }
+
+        const fac = new FastAverageColor();
+        const imageUrl = `/storage/${coverPath}`;
+
+        fac.getColorAsync(imageUrl, { crossOrigin: 'anonymous' })
+            .then((color) => {
+                const [r, g, b] = color.value;
+                const darken = (v: number) => Math.max(0, v - 50);
+                const lighten = (v: number) => Math.min(255, v + 50);
+
+                const hexTo = `rgb(${darken(r)}, ${darken(g)}, ${darken(b)})`;
+                const hexAccent = `rgb(${lighten(r)}, ${lighten(g)}, ${lighten(b)})`;
+
+                document.documentElement.style.setProperty('--gradient-from', color.hex);
+                document.documentElement.style.setProperty('--gradient-to', hexTo);
+                document.documentElement.style.setProperty('--gradient-accent', hexAccent);
+                document.documentElement.style.setProperty('--theme-base-color', `rgb(${r}, ${g}, ${b})`);
+            })
+            .catch(() => {
+                // Failsafe in case image is missing or CORS error
+                document.documentElement.style.removeProperty('--gradient-from');
+                document.documentElement.style.removeProperty('--gradient-to');
+                document.documentElement.style.removeProperty('--gradient-accent');
+                document.documentElement.style.removeProperty('--theme-base-color');
+            });
+
+        return () => {
+            fac.destroy();
+        };
+    }, [state.currentTrack?.project?.cover_path]);
 
     const play = useCallback(() => {
         if (activeRef.current) {

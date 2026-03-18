@@ -4,6 +4,7 @@ export interface AudioVersion {
     id: number;
     project_id: number;
     name: string;
+    original_filename: string | null;
     file_path: string;
     format: string;
     duration?: number;
