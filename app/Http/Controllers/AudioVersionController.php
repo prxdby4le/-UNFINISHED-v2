@@ -51,7 +51,7 @@ class AudioVersionController extends Controller
                 continue;
             }
 
-            $metadata = $this->audioService->extractMetadata($file->getRealPath());
+            $metadata = $this->audioService->extractMetadata($file->getRealPath(), $file->getClientOriginalName());
             $filePath = $this->storageService->storeFile($file, 'audio/versions');
 
             $data = [

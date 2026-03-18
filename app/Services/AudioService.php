@@ -15,13 +15,13 @@ class AudioService
      * @param  string  $filePath
      * @return array{format: string, duration: int|null, size: int}
      */
-    public function extractMetadata(string $filePath): array
+    public function extractMetadata(string $filePath, string $originalFilename = ''): array
     {
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($originalFilename ?: $filePath, PATHINFO_EXTENSION));
         $size = filesize($filePath);
 
         // Get duration and format using getid3
-        $metadata = $this->getMetadata($filePath);
+        $metadata = $this->getMetadata($filePath, $originalFilename);
         $duration = $metadata['duration'] ?? null;
         $format = $metadata['format'] ?? $extension;
 
@@ -38,7 +38,7 @@ class AudioService
      * @param  string  $filePath
      * @return array{format: string|null, duration: int|null}
      */
-    private function getMetadata(string $filePath): array
+    private function getMetadata(string $filePath, string $originalFilename = ''): array
     {
         try {
             if (!file_exists($filePath)) {
@@ -52,7 +52,7 @@ class AudioService
                 $this->getid3 = new \getID3();
             }
 
-            $fileInfo = $this->getid3->analyze($filePath);
+            $fileInfo = $this->getid3->analyze($filePath, filesize($filePath), $originalFilename);
 
             // Check for errors
             if (isset($fileInfo['error'])) {
