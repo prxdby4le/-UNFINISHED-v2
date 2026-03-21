@@ -92,7 +92,7 @@ class ProjectShareController extends Controller
                 return redirect()->guest(route('login'));
             }
 
-            if ($project->user_id !== Auth::id()) {
+            if ($project->user_id != Auth::id()) {
                 if (! $project->editors()->where('user_id', Auth::id())->exists()) {
                     $project->editors()->attach(Auth::id(), ['role' => 'editor']);
                 }

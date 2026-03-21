@@ -83,9 +83,9 @@ class ProjectController extends Controller
             'project' => $project->load('activeShares'),
             'colors' => $colors,
             'permissions' => [
-                'can_delete_project' => $project->user_id === Auth::id(),
-                'can_share' => $project->user_id === Auth::id(),
-                'can_delete_track' => $project->user_id === Auth::id(),
+                'can_delete_project' => $project->user_id == Auth::id(),
+                'can_share' => $project->user_id == Auth::id(),
+                'can_delete_track' => $project->user_id == Auth::id(),
             ],
         ]);
     }
@@ -124,7 +124,7 @@ class ProjectController extends Controller
     {
         $project = $this->repository->getProject($id);
 
-        if ($project->user_id !== Auth::id()) {
+        if ($project->user_id != Auth::id()) {
             abort(403, 'Apenas o criador pode deletar este projeto.');
         }
 
