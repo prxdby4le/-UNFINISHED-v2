@@ -187,7 +187,7 @@ export function ShareDialog({ projectId, isPrivate, open, onOpenChange, onPrivac
                             size="sm"
                             variant="outline"
                             onClick={() => createLink('view')}
-                            disabled={creating}
+                            disabled={creating || localPrivate}
                             className="flex-1 text-xs"
                         >
                             {creating ? (
@@ -201,7 +201,7 @@ export function ShareDialog({ projectId, isPrivate, open, onOpenChange, onPrivac
                             size="sm"
                             variant="outline"
                             onClick={() => createLink('edit')}
-                            disabled={creating}
+                            disabled={creating || localPrivate}
                             className="flex-1 text-xs"
                         >
                             {creating ? (

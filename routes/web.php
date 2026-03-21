@@ -13,6 +13,7 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleSocialiteC
 Route::get('/share/{token}', [\App\Http\Controllers\ProjectShareController::class, 'showPublic'])->name('share.show');
 Route::get('/share/{token}/upload', [\App\Http\Controllers\ProjectShareController::class, 'uploadPage'])->name('share.upload');
 Route::post('/share/{token}/upload', [\App\Http\Controllers\ProjectShareController::class, 'uploadStore'])->name('share.upload.store');
+Route::get('/share/{token}/download/{audioVersionId}', [\App\Http\Controllers\ProjectShareController::class, 'downloadSharedVersion'])->name('share.download');
 
 // Projects routes
 Route::middleware(['auth'])->group(function () {

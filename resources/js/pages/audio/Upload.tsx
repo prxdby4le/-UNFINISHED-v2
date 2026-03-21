@@ -95,9 +95,8 @@ export default function AudioUpload({ projectId }: Props) {
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
-                    className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-10 transition-colors sm:py-16 ${
-                        isDragging ? 'border-foreground/30 bg-muted/30' : 'border-border/40'
-                    }`}
+                    className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-10 transition-colors sm:py-16 ${isDragging ? 'border-foreground/30 bg-muted/30' : 'border-border/40'
+                        }`}
                 >
                     <UploadIcon className="size-6 text-muted-foreground" />
                     <p className="mt-3 text-sm text-muted-foreground">

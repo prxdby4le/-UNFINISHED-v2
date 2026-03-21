@@ -175,7 +175,7 @@ export default function SharedView({ project, permission, colors, token }: Props
                                         </span>
 
                                         <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                            <a href={`/audio-versions/${version.id}/download`} download>
+                                            <a href={`/share/${token}/download/${version.id}`} download>
                                                 <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
                                                     <Download className="size-3" />
                                                 </Button>

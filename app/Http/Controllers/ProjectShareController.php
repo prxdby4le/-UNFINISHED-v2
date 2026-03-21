@@ -174,4 +174,33 @@ class ProjectShareController extends Controller
 
         return $share;
     }
+
+    public function downloadSharedVersion(string $token, int $audioVersionId)
+    {
+        $share = ProjectShare::where('token', $token)
+            ->where('is_active', true)
+            ->with('project')
+            ->firstOrFail();
+
+        if (! $share->isValid()) {
+            if ($share->project->is_private) {
+                abort(403, 'This project is private.');
+            }
+            abort(404);
+        }
+
+        $version = \App\Models\AudioVersion::where('project_id', $share->project_id)
+            ->findOrFail($audioVersionId);
+
+        $filePath = storage_path('app/public/' . $version->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Arquivo não encontrado');
+        }
+
+        $format = $version->format ?: pathinfo($filePath, PATHINFO_EXTENSION);
+        $filename = $version->name . '.' . $format;
+
+        return response()->download($filePath, $filename);
+    }
 }
