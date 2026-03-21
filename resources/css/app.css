@@ -100,9 +100,9 @@
     --gradient-from: oklch(0.7 0.15 350);
     --gradient-to: oklch(0.65 0.18 330);
     --gradient-accent: oklch(0.7 0.2 10);
-    --glass-bg: rgba(255, 255, 255, 0.6);
-    --glass-bg-strong: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-bg-strong: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.5);
     --glass-shadow: rgba(0, 0, 0, 0.05);
     --glow-color: oklch(0.7 0.15 350 / 0.3);
 }
@@ -145,9 +145,9 @@
     --gradient-from: oklch(0.55 0.25 350);
     --gradient-to: oklch(0.50 0.22 330);
     --gradient-accent: oklch(0.55 0.28 10);
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-bg-strong: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(20, 20, 20, 0.65);
+    --glass-bg-strong: rgba(20, 20, 20, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.12);
     --glass-shadow: rgba(0, 0, 0, 0.3);
     --glow-color: oklch(0.55 0.25 350 / 0.25);
 }
