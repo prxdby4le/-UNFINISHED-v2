@@ -15,12 +15,13 @@ interface Props {
     project: Project & {
         audio_versions: AudioVersion[];
         is_private?: boolean;
-        permissions?: {
-            can_delete_project: boolean;
-            can_share: boolean;
-            can_delete_track: boolean;
-        };
     };
+    permissions?: {
+        can_delete_project: boolean;
+        can_share: boolean;
+        can_delete_track: boolean;
+    };
+    colors?: string[] | null;
 }
 
 function formatDuration(seconds?: number): string {
@@ -41,7 +42,7 @@ function formatTotalDuration(versions: AudioVersion[]): string {
     return `${mins}m`;
 }
 
-export default function ProjectsShow({ project }: Props) {
+export default function ProjectsShow({ project, permissions }: Props) {
     const player = usePlayer();
     const { auth } = usePage<SharedData>().props;
     const [editingVersion, setEditingVersion] = useState<AudioVersion | null>(null);
@@ -170,7 +171,7 @@ export default function ProjectsShow({ project }: Props) {
                             </a>
                         )}
                         <div className="ml-auto flex items-center gap-0.5">
-                            {project.permissions?.can_share && (
+                            {permissions?.can_share && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -187,7 +188,7 @@ export default function ProjectsShow({ project }: Props) {
                                     <Edit className="size-3" />
                                 </Button>
                             </Link>
-                            {project.permissions?.can_delete_project && (
+                            {permissions?.can_delete_project && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -275,7 +276,7 @@ export default function ProjectsShow({ project }: Props) {
                                         >
                                             <Edit className="size-3" />
                                         </Button>
-                                        {project.permissions?.can_delete_track && (
+                                        {permissions?.can_delete_track && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
