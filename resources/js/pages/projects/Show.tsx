@@ -15,6 +15,11 @@ interface Props {
     project: Project & {
         audio_versions: AudioVersion[];
         is_private?: boolean;
+        permissions?: {
+            can_delete_project: boolean;
+            can_share: boolean;
+            can_delete_track: boolean;
+        };
     };
 }
 
@@ -165,29 +170,33 @@ export default function ProjectsShow({ project }: Props) {
                             </a>
                         )}
                         <div className="ml-auto flex items-center gap-0.5">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-xs text-muted-foreground"
-                                onClick={() => setIsShareDialogOpen(true)}
-                            >
-                                <Share2 className="size-3 sm:mr-1" />
-                                <span className="hidden sm:inline">Compartilhar</span>
-                                {isPrivate && <Lock className="ml-1 size-2.5" />}
-                            </Button>
+                            {project.permissions?.can_share && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-muted-foreground"
+                                    onClick={() => setIsShareDialogOpen(true)}
+                                >
+                                    <Share2 className="size-3 sm:mr-1" />
+                                    <span className="hidden sm:inline">Compartilhar</span>
+                                    {isPrivate && <Lock className="ml-1 size-2.5" />}
+                                </Button>
+                            )}
                             <Link href={`/projects/${project.id}/edit`}>
                                 <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
                                     <Edit className="size-3" />
                                 </Button>
                             </Link>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleDelete}
-                                className="size-7 text-muted-foreground hover:text-destructive"
-                            >
-                                <Trash2 className="size-3" />
-                            </Button>
+                            {project.permissions?.can_delete_project && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={handleDelete}
+                                    className="size-7 text-muted-foreground hover:text-destructive"
+                                >
+                                    <Trash2 className="size-3" />
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -266,18 +275,20 @@ export default function ProjectsShow({ project }: Props) {
                                         >
                                             <Edit className="size-3" />
                                         </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="size-7 text-muted-foreground hover:text-destructive"
-                                            onClick={() => {
-                                                if (confirm('Deletar essa faixa? Isso não pode ser desfeito.')) {
-                                                    router.delete(`/audio-versions/${version.id}`, { preserveScroll: true });
-                                                }
-                                            }}
-                                        >
-                                            <Trash2 className="size-3" />
-                                        </Button>
+                                        {project.permissions?.can_delete_track && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-7 text-muted-foreground hover:text-destructive"
+                                                onClick={() => {
+                                                    if (confirm('Deletar essa faixa? Isso não pode ser desfeito.')) {
+                                                        router.delete(`/audio-versions/${version.id}`, { preserveScroll: true });
+                                                    }
+                                                }}
+                                            >
+                                                <Trash2 className="size-3" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

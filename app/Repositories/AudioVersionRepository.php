@@ -12,7 +12,12 @@ class AudioVersionRepository
 {
     public function getVersionsByProject(int $projectId): Collection
     {
-        $project = Project::where('user_id', Auth::id())->findOrFail($projectId);
+        $project = Project::where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            })->findOrFail($projectId);
 
         return AudioVersion::where('project_id', $project->id)
             ->where('is_active', true)
@@ -41,7 +46,12 @@ class AudioVersionRepository
     public function updateVersion(int $id, array $data): AudioVersion
     {
         $version = AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', Auth::id());
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            });
         })->findOrFail($id);
 
         $version->update($data);
@@ -60,7 +70,12 @@ class AudioVersionRepository
 
     public function reorderVersions(int $projectId, array $versionIds): void
     {
-        $project = Project::where('user_id', Auth::id())->findOrFail($projectId);
+        $project = Project::where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            })->findOrFail($projectId);
 
         DB::transaction(function () use ($projectId, $versionIds) {
             foreach ($versionIds as $index => $versionId) {
@@ -74,7 +89,12 @@ class AudioVersionRepository
     public function toggleMaster(int $id): AudioVersion
     {
         $version = AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', Auth::id());
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            });
         })->findOrFail($id);
 
         // Remove master status from all versions in the project
@@ -90,7 +110,12 @@ class AudioVersionRepository
     public function getVersionHistory(int $id): Collection
     {
         $version = AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', Auth::id());
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            });
         })->findOrFail($id);
 
         return AudioVersion::where('track_id', $version->track_id)
@@ -101,7 +126,12 @@ class AudioVersionRepository
     public function setActiveVersion(int $id): AudioVersion
     {
         $version = AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', Auth::id());
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            });
         })->findOrFail($id);
 
         // Deactivate all versions in the same track group

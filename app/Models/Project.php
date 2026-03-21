@@ -66,4 +66,11 @@ class Project extends Model
         $relation = $this->shares()->where('is_active', true);
         return $relation;
     }
+
+    public function editors()
+    {
+        return $this->belongsToMany(User::class, 'project_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
 }

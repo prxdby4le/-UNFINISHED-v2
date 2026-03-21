@@ -8,6 +8,7 @@ use App\Repositories\ProjectRepository;
 use App\Services\ColorExtractionService;
 use App\Services\StorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ProjectController extends Controller
@@ -81,6 +82,11 @@ class ProjectController extends Controller
         return Inertia::render('projects/Show', [
             'project' => $project->load('activeShares'),
             'colors' => $colors,
+            'permissions' => [
+                'can_delete_project' => $project->user_id === Auth::id(),
+                'can_share' => $project->user_id === Auth::id(),
+                'can_delete_track' => $project->user_id === Auth::id(),
+            ],
         ]);
     }
 
@@ -117,6 +123,10 @@ class ProjectController extends Controller
     public function destroy(int $id)
     {
         $project = $this->repository->getProject($id);
+
+        if ($project->user_id !== Auth::id()) {
+            abort(403, 'Apenas o criador pode deletar este projeto.');
+        }
 
         // Delete cover if exists
         if ($project->cover_path) {

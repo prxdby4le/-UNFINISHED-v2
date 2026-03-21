@@ -10,7 +10,12 @@ class ProjectRepository
 {
     public function getProjects(?string $search = null, int $perPage = 15)
     {
-        $query = Project::where('user_id', Auth::id())
+        $query = Project::where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            })
             ->withCount('audioVersions')
             ->orderBy('created_at', 'desc');
 
@@ -23,7 +28,12 @@ class ProjectRepository
 
     public function getProject(int $id): ?Project
     {
-        return Project::where('user_id', Auth::id())
+        return Project::where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            })
             ->with(['audioVersions' => function ($query) {
                 $query->orderBy('order', 'asc')->orderBy('created_at', 'asc');
             }, 'user'])
@@ -39,7 +49,12 @@ class ProjectRepository
 
     public function updateProject(int $id, array $data): Project
     {
-        $project = Project::where('user_id', Auth::id())->findOrFail($id);
+        $project = Project::where(function ($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', Auth::id());
+                  });
+            })->findOrFail($id);
         $project->update($data);
 
         return $project->fresh();

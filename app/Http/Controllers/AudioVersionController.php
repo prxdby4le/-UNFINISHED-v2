@@ -45,7 +45,12 @@ class AudioVersionController extends Controller
             return redirect()->back()->with('error', 'Nenhum arquivo enviado.');
         }
 
-        $project = \App\Models\Project::where('user_id', auth()->id())->findOrFail($projectId);
+        $project = \App\Models\Project::where(function ($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', auth()->id());
+                  });
+            })->findOrFail($projectId);
         $uploaded = 0;
         foreach ($files as $file) {
             if (!$file || !$file->isValid()) {
@@ -134,7 +139,12 @@ class AudioVersionController extends Controller
         ]);
 
         $parentVersion = \App\Models\AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', auth()->id());
+            $query->where(function ($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', auth()->id());
+                  });
+            });
         })->findOrFail($id);
 
         $file = $request->file('file');

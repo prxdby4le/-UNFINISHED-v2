@@ -87,6 +87,21 @@ class ProjectShareController extends Controller
 
         $project = $share->project;
 
+        if ($share->permission === 'edit') {
+            if (! Auth::check()) {
+                return redirect()->guest(route('login'));
+            }
+
+            if ($project->user_id !== Auth::id()) {
+                if (! $project->editors()->where('user_id', Auth::id())->exists()) {
+                    $project->editors()->attach(Auth::id(), ['role' => 'editor']);
+                }
+            }
+
+            return redirect()->route('projects.show', $project->id)
+                ->with('success', 'Você ingressou no projeto como colaborador.');
+        }
+
         $colors = null;
         if ($project->cover_path) {
             $fullPath = storage_path('app/public/' . $project->cover_path);
