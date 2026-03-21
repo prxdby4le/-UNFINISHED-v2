@@ -68,7 +68,7 @@ export default function SharedView({ project, permission, colors, token }: Props
             </header>
 
             {/* Content */}
-            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8">
+            <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-6 pb-28 sm:px-6 sm:pt-8 sm:pb-28">
                 <Head title={`${project.name} — Compartilhado`} />
 
                 <div className="flex flex-col gap-8 md:flex-row md:gap-8">

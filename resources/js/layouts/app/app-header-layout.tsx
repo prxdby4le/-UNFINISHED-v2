@@ -85,7 +85,7 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                 )}
             </header>
 
-            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 pb-24 sm:px-6 sm:py-8 fade-in">
+            <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 pb-28 sm:px-6 sm:pt-8 sm:pb-28 fade-in">
                 {children}
             </main>
 
