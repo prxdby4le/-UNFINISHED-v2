@@ -197,8 +197,13 @@ html.dark[style*="--theme-base-color"] {
         letter-spacing: -0.02em;
     }
 
-    button {
-        @apply transition-all duration-200;
+    button, a[class*="inline-flex items-center justify-center"] {
+        @apply transition-all duration-300;
+        transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    
+    button:active, a[class*="inline-flex"]:active {
+        transform: scale(0.97) translateY(1px);
     }
 }
 

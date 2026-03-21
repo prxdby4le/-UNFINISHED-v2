@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { type Project } from '@/repositories/projectRepository';
 import { type AudioVersion } from '@/repositories/audioRepository';
 import { usePlayer } from '@/providers/PlayerProvider';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { Play, Pause, Music, Download, Plus, Upload as UploadIcon, Lock } from 'lucide-react';
 
 interface Props {
@@ -73,17 +74,35 @@ export default function SharedView({ project, permission, colors, token }: Props
                 <div className="flex flex-col gap-8 md:flex-row md:gap-8">
                     {/* Left: Album art */}
                     <div className="flex-shrink-0 md:sticky md:top-20 md:self-start">
-                        <div className="mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm sm:max-w-[300px] md:max-w-none md:w-[300px] lg:w-[340px]">
-                            {project.cover_path ? (
-                                <img
-                                    src={project.cover_url || `/storage/${project.cover_path}`}
-                                    alt={project.name}
-                                    className="size-full object-cover"
-                                />
-                            ) : (
-                                <Music className="size-16 text-muted-foreground/20" />
-                            )}
-                        </div>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <button className="mx-auto flex aspect-square w-full max-w-[220px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-muted shadow-sm transition-transform hover:scale-[1.02] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring sm:max-w-[300px] md:w-[300px] md:max-w-none lg:w-[340px]">
+                                    {project.cover_path ? (
+                                        <img
+                                            src={project.cover_url || `/storage/${project.cover_path}`}
+                                            alt={project.name}
+                                            className="size-full object-cover"
+                                        />
+                                    ) : (
+                                        <Music className="size-16 text-muted-foreground/20" />
+                                    )}
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl border-none bg-transparent p-0 shadow-none">
+                                <DialogTitle className="sr-only">Capa do Projeto - {project.name}</DialogTitle>
+                                {project.cover_path ? (
+                                    <img
+                                        src={project.cover_url || `/storage/${project.cover_path}`}
+                                        alt={project.name}
+                                        className="h-auto w-full rounded-md object-contain shadow-2xl"
+                                    />
+                                ) : (
+                                    <div className="flex aspect-square w-full items-center justify-center rounded-md bg-muted shadow-2xl">
+                                        <Music className="size-32 text-muted-foreground/20" />
+                                    </div>
+                                )}
+                            </DialogContent>
+                        </Dialog>
                     </div>
 
                     {/* Right: Project info + tracklist */}
