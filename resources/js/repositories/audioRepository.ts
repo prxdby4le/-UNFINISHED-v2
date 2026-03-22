@@ -47,6 +47,13 @@ export const audioRepository = {
         });
     },
 
+    deleteHistoryVersion(id: number, onSuccess?: () => void): void {
+        router.delete(`/audio-versions/${id}/history`, {
+            preserveScroll: true,
+            onSuccess,
+        });
+    },
+
     reorderVersions(projectId: number, versionIds: number[]): void {
         router.post(`/projects/${projectId}/audio-versions/reorder`, {
             version_ids: versionIds,

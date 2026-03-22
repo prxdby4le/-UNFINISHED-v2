@@ -107,6 +107,30 @@ class AudioVersionController extends Controller
         return redirect()->back()->with('success', 'Faixa e seu histórico foram deletados!');
     }
 
+    public function destroyHistory(int $id)
+    {
+        $version = \App\Models\AudioVersion::whereHas('project', function ($query) {
+            $query->where(function ($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', auth()->id());
+                  });
+            });
+        })->findOrFail($id);
+
+        if ($version->is_active) {
+            return redirect()->back()->with('error', 'Não é possível deletar a versão ativa.');
+        }
+
+        if ($version->file_path) {
+            $this->storageService->deleteFile($version->file_path);
+        }
+
+        $version->delete();
+
+        return redirect()->back()->with('success', 'Versão removida do histórico!');
+    }
+
     public function reorder(Request $request, int $projectId)
     {
         $request->validate([

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import InputError from '@/components/input-error';
 import { audioRepository, type AudioVersion } from '@/repositories/audioRepository';
-import { Upload, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
+import { Upload, CheckCircle2, Clock, PlayCircle, Trash2 } from 'lucide-react';
 
 interface Props {
     version: AudioVersion | null;
@@ -86,6 +86,14 @@ export function EditAudioVersionDialog({ version, open, onOpenChange, onSuccess 
             loadHistory();
             onSuccess?.();
         });
+    };
+
+    const handleDeleteHistory = (id: number) => {
+        if (confirm('Tem certeza que deseja remover esta versão? A ação não pode ser desfeita.')) {
+            audioRepository.deleteHistoryVersion(id, () => {
+                loadHistory();
+            });
+        }
     };
 
     const formatDate = (dateString: string) => {
@@ -175,15 +183,27 @@ export function EditAudioVersionDialog({ version, open, onOpenChange, onSuccess 
                                         </div>
 
                                         {!hItem.is_active && (
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                size="sm"
-                                                className="shrink-0 h-7 text-xs"
-                                                onClick={() => handleSetActive(hItem.id)}
-                                            >
-                                                Tornar Ativa
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="shrink-0 h-7 text-xs"
+                                                    onClick={() => handleSetActive(hItem.id)}
+                                                >
+                                                    Tornar Ativa
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="shrink-0 size-7"
+                                                    title="Remover Versão"
+                                                    onClick={() => handleDeleteHistory(hItem.id)}
+                                                >
+                                                    <Trash2 className="size-3.5" />
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
                                 ))}

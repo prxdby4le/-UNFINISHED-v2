@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('projects/{projectId}/audio-versions', [\App\Http\Controllers\AudioVersionController::class, 'store'])->name('audio-versions.store');
     Route::put('audio-versions/{id}', [\App\Http\Controllers\AudioVersionController::class, 'update'])->name('audio-versions.update');
     Route::delete('audio-versions/{id}', [\App\Http\Controllers\AudioVersionController::class, 'destroy'])->name('audio-versions.destroy');
+    Route::delete('audio-versions/{id}/history', [\App\Http\Controllers\AudioVersionController::class, 'destroyHistory'])->name('audio-versions.destroy-history');
     Route::post('projects/{projectId}/audio-versions/reorder', [\App\Http\Controllers\AudioVersionController::class, 'reorder'])->name('audio-versions.reorder');
     Route::post('audio-versions/{id}/toggle-master', [\App\Http\Controllers\AudioVersionController::class, 'toggleMaster'])->name('audio-versions.toggle-master');
     Route::get('audio-versions/{id}/history', [\App\Http\Controllers\AudioVersionController::class, 'history'])->name('audio-versions.history');
