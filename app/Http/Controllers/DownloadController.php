@@ -19,7 +19,12 @@ class DownloadController extends Controller
     public function downloadVersion(int $id)
     {
         $version = AudioVersion::whereHas('project', function ($query) {
-            $query->where('user_id', auth()->id());
+            $query->where(function ($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', auth()->id());
+                  });
+            });
         })->findOrFail($id);
 
         $filePath = storage_path('app/public/'.$version->file_path);
@@ -37,7 +42,12 @@ class DownloadController extends Controller
 
     public function downloadProject(int $projectId)
     {
-        $project = Project::where('user_id', auth()->id())
+        $project = Project::where(function ($q) {
+                $q->where('user_id', auth()->id())
+                  ->orWhereHas('editors', function ($q2) {
+                      $q2->where('user_id', auth()->id());
+                  });
+            })
             ->with('audioVersions')
             ->findOrFail($projectId);
 
