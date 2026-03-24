@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import InputError from '@/components/input-error';
 import { audioRepository, type AudioVersion } from '@/repositories/audioRepository';
-import { Upload, CheckCircle2, Clock, PlayCircle, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle2, Clock, PlayCircle, Trash2, MessageSquare } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 interface Props {
     version: AudioVersion | null;
@@ -182,29 +183,42 @@ export function EditAudioVersionDialog({ version, open, onOpenChange, onSuccess 
                                             </div>
                                         </div>
 
-                                        {!hItem.is_active && (
-                                            <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Link href={`/audio-versions/${hItem.id}/feedback`}>
                                                 <Button
                                                     type="button"
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    className="shrink-0 h-7 text-xs"
-                                                    onClick={() => handleSetActive(hItem.id)}
-                                                >
-                                                    Tornar Ativa
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
+                                                    variant="ghost"
                                                     size="icon"
-                                                    className="shrink-0 size-7"
-                                                    title="Remover Versão"
-                                                    onClick={() => handleDeleteHistory(hItem.id)}
+                                                    className="shrink-0 size-7 text-muted-foreground"
+                                                    title="Comentários"
                                                 >
-                                                    <Trash2 className="size-3.5" />
+                                                    <MessageSquare className="size-3.5" />
                                                 </Button>
-                                            </div>
-                                        )}
+                                            </Link>
+                                            {!hItem.is_active && (
+                                                <>
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        className="shrink-0 h-7 text-xs"
+                                                        onClick={() => handleSetActive(hItem.id)}
+                                                    >
+                                                        Tornar Ativa
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        className="shrink-0 size-7"
+                                                        title="Remover Versão"
+                                                        onClick={() => handleDeleteHistory(hItem.id)}
+                                                    >
+                                                        <Trash2 className="size-3.5" />
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

@@ -9,7 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import { EditAudioVersionDialog } from '@/components/EditAudioVersionDialog';
 import { ShareDialog } from '@/components/ShareDialog';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { Edit, Trash2, Plus, Download, Play, Pause, Music, GripVertical, Share2, Lock } from 'lucide-react';
+import { Edit, Trash2, Plus, Download, Play, Pause, Music, GripVertical, Share2, Lock, MessageSquare } from 'lucide-react';
 import type { SharedData } from '@/types';
 
 interface Props {
@@ -284,6 +284,11 @@ export default function ProjectsShow({ project, permissions }: Props) {
                                                 <Download className="size-3" />
                                             </Button>
                                         </a>
+                                        <Link href={`/audio-versions/${version.id}/feedback`}>
+                                            <Button variant="ghost" size="icon" className="size-7 text-muted-foreground">
+                                                <MessageSquare className="size-3" />
+                                            </Button>
+                                        </Link>
                                         <Button
                                             variant="ghost"
                                             size="icon"
