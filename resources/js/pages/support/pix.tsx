@@ -52,7 +52,7 @@ export default function Pix() {
                             <p className="text-sm font-medium text-foreground text-center">Ou utilize a chave Pix (E-mail):</p>
                             <div className="flex w-full items-center justify-between gap-2 bg-black/40 border border-white/10 px-4 py-3 rounded-lg overflow-hidden">
                                 <span className="font-mono text-sm text-white/90 truncate select-all flex-1">
-                                    contato@seudominio.com.br
+                                    4contatokleberhenrique@gmail.com
                                 </span>
                                 <Button
                                     size="sm"
