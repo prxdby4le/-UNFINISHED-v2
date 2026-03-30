@@ -51,6 +51,11 @@ Route::middleware(['auth'])->group(function () {
     // Download routes
     Route::get('audio-versions/{id}/download', [\App\Http\Controllers\DownloadController::class, 'downloadVersion'])->name('audio-versions.download');
     Route::get('projects/{projectId}/download', [\App\Http\Controllers\DownloadController::class, 'downloadProject'])->name('projects.download');
+
+    // Support routes
+    Route::get('support/pix', function () {
+        return inertia('support/pix');
+    })->name('support.pix');
 });
 
 require __DIR__.'/settings.php';

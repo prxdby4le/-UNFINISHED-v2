@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Music, Menu, X } from 'lucide-react';
+import { Music, Menu, X, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,12 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                     </nav>
 
                     <div className="flex items-center gap-3">
+                        <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 h-8 glass hover:bg-white/10 transition-all font-medium text-white/90" asChild>
+                            <Link href="/support/pix">
+                                <Heart className="size-3.5 text-rose-500 fill-rose-500/20" />
+                                <span>Apoie nosso trabalho</span>
+                            </Link>
+                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="size-8 rounded-full">
@@ -73,13 +79,21 @@ export default function AppHeaderLayout({ children }: { children: ReactNode }) {
                 <div className="gradient-line w-full" />
 
                 {mobileOpen && (
-                    <div className="border-t border-white/5 px-6 py-3 sm:hidden">
+                    <div className="border-t border-white/5 px-6 py-3 sm:hidden flex flex-col gap-2">
                         <Link
                             href="/projects"
-                            className="block py-2 text-sm text-muted-foreground"
+                            className="block py-2 text-sm text-muted-foreground hover:text-white transition-colors"
                             onClick={() => setMobileOpen(false)}
                         >
                             Projetos
+                        </Link>
+                        <Link
+                            href="/support/pix"
+                            className="flex items-center gap-2 py-2 text-sm font-medium text-rose-400 hover:text-rose-300 transition-colors"
+                            onClick={() => setMobileOpen(false)}
+                        >
+                            <Heart className="size-4 fill-rose-500/20" />
+                            Apoie nosso trabalho
                         </Link>
                     </div>
                 )}
