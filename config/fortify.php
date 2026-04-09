@@ -6,7 +6,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Fortify Guard
+    | Fortify Guard 
     |--------------------------------------------------------------------------
     |
     | Here you may specify which authentication guard Fortify will use while

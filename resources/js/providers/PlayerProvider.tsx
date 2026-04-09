@@ -11,8 +11,6 @@ interface ProjectInfo {
 
 type TrackWithProject = AudioVersion & { project?: ProjectInfo };
 
-// ... (skip unchanged lines, but I need to do this via multi_replace_file_content or narrow chunks)
-
 interface PlayerState {
     currentTrack: TrackWithProject | null;
     playlist: TrackWithProject[];
@@ -47,10 +45,37 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 const PRELOAD_THRESHOLD_S = 5;
 
+/**
+ * Resolves the playback URL for a track.
+ */
+function getTrackUrl(track: TrackWithProject): string {
+    return track.url || `/storage/${track.file_path}`;
+}
+
+/**
+ * Fully stops an HTMLAudioElement: pauses it, resets time,
+ * clears source, and removes all inline event handlers.
+ */
+function killAudioElement(el: HTMLAudioElement | null) {
+    if (!el) return;
+    el.pause();
+    el.removeAttribute('src');
+    el.load(); // resets the element
+    el.onloadedmetadata = null;
+    el.ontimeupdate = null;
+    el.onended = null;
+    el.onerror = null;
+    el.oncanplay = null;
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-    const activeRef = useRef<HTMLAudioElement | null>(null);
-    const nextRef = useRef<HTMLAudioElement | null>(null);
+    // Single audio element for playback — never swapped
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    // Secondary element used ONLY for preloading (browser cache warming)
+    const preloadRef = useRef<HTMLAudioElement | null>(null);
     const preloadedTrackIdRef = useRef<number | null>(null);
+    // Guard against play/load race conditions
+    const playIntentRef = useRef(0);
 
     const [state, setState] = useState<PlayerState>({
         currentTrack: null,
@@ -68,16 +93,21 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const stateRef = useRef(state);
     stateRef.current = state;
 
-    const getNextTrackFor = useCallback((current: TrackWithProject | null, playlist: TrackWithProject[], shuffle: boolean): TrackWithProject | null => {
-        if (playlist.length === 0 || !current) return null;
-        if (shuffle) {
-            const others = playlist.filter((t) => t.id !== current.id);
-            return others.length > 0 ? others[Math.floor(Math.random() * others.length)] : playlist[0];
-        }
-        const idx = playlist.findIndex((t) => t.id === current.id);
-        if (idx === -1) return playlist[0];
-        return playlist[(idx + 1) % playlist.length];
-    }, []);
+    // ─── Track navigation helpers ────────────────────────────────────
+
+    const getNextTrackFor = useCallback(
+        (current: TrackWithProject | null, playlist: TrackWithProject[], shuffle: boolean): TrackWithProject | null => {
+            if (playlist.length === 0 || !current) return null;
+            if (shuffle) {
+                const others = playlist.filter((t) => t.id !== current.id);
+                return others.length > 0 ? others[Math.floor(Math.random() * others.length)] : playlist[0];
+            }
+            const idx = playlist.findIndex((t) => t.id === current.id);
+            if (idx === -1) return playlist[0];
+            return playlist[(idx + 1) % playlist.length];
+        },
+        [],
+    );
 
     const getPrevTrack = useCallback((): TrackWithProject | null => {
         const { playlist, currentTrack } = stateRef.current;
@@ -87,6 +117,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         return playlist[idx === 0 ? playlist.length - 1 : idx - 1];
     }, []);
 
+    // ─── Audio property helpers ──────────────────────────────────────
+
     const applyAudioProps = useCallback((el: HTMLAudioElement) => {
         const s = stateRef.current;
         el.volume = s.volume;
@@ -94,26 +126,33 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         el.playbackRate = s.playbackRate * Math.pow(2, s.pitchSemitones / 12);
     }, []);
 
+    // ─── Preload (cache-warming only, never used for playback) ───────
+
     const preloadNext = useCallback(() => {
         const s = stateRef.current;
         const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
         if (!upcoming || upcoming.id === preloadedTrackIdRef.current) return;
-        if (!nextRef.current) {
-            nextRef.current = new Audio();
+
+        if (!preloadRef.current) {
+            preloadRef.current = new Audio();
         }
-        nextRef.current.src = upcoming.url || `/storage/${upcoming.file_path}`;
-        nextRef.current.preload = 'auto';
-        nextRef.current.load();
+        // Kill any previous preload to avoid lingering network requests
+        preloadRef.current.pause();
+        preloadRef.current.src = getTrackUrl(upcoming);
+        preloadRef.current.preload = 'auto';
+        preloadRef.current.load();
         preloadedTrackIdRef.current = upcoming.id;
     }, [getNextTrackFor]);
 
+    // ─── Core audio lifecycle (runs once on mount) ───────────────────
+
     useEffect(() => {
-        if (!activeRef.current) {
-            activeRef.current = new Audio();
-            activeRef.current.preload = 'auto';
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+            audioRef.current.preload = 'auto';
         }
 
-        const audio = activeRef.current;
+        const audio = audioRef.current;
 
         const onLoadedMetadata = () => {
             setState((prev) => ({ ...prev, duration: audio.duration || 0 }));
@@ -132,23 +171,26 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const onEnded = () => {
             const s = stateRef.current;
 
+            // Loop single track
             if (s.loopMode === 'one') {
                 audio.currentTime = 0;
-                audio.play();
+                audio.play().catch(() => {});
                 return;
             }
 
+            // No playlist — just stop
             if (s.playlist.length === 0) {
-                setState((prev) => ({ ...prev, isPlaying: false }));
+                setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
                 return;
             }
 
             const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
             if (!upcoming) {
-                setState((prev) => ({ ...prev, isPlaying: false }));
+                setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
                 return;
             }
 
+            // If loop is off and we're on the last track, stop
             const isLastTrack = (() => {
                 if (s.shuffle) return false;
                 const idx = s.playlist.findIndex((t) => t.id === s.currentTrack?.id);
@@ -156,57 +198,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             })();
 
             if (isLastTrack && s.loopMode === 'off') {
-                setState((prev) => ({ ...prev, isPlaying: false }));
+                setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
                 return;
             }
 
-            if (nextRef.current && preloadedTrackIdRef.current === upcoming.id) {
-                const old = activeRef.current;
-                activeRef.current = nextRef.current;
-                nextRef.current = old;
-                preloadedTrackIdRef.current = null;
+            // ── Transition to the next track on the SAME audio element ──
+            // The browser cache will already have the data if preloadNext ran.
+            audio.src = getTrackUrl(upcoming);
+            applyAudioProps(audio);
+            preloadedTrackIdRef.current = null;
 
-                const newActive = activeRef.current;
-                applyAudioProps(newActive);
+            setState((prev) => ({
+                ...prev,
+                currentTrack: upcoming,
+                currentTime: 0,
+                duration: 0,
+                isPlaying: true,
+            }));
 
-                newActive.onloadedmetadata = () => {
-                    setState((prev) => ({ ...prev, duration: newActive.duration || 0 }));
-                };
-                newActive.ontimeupdate = () => {
-                    const t = newActive.currentTime || 0;
-                    setState((prev) => ({ ...prev, currentTime: t }));
-                    if (newActive.duration && newActive.duration - t < PRELOAD_THRESHOLD_S && stateRef.current.loopMode !== 'one') {
-                        preloadNext();
-                    }
-                };
-                newActive.onended = onEnded;
-                newActive.onerror = () => setState((prev) => ({ ...prev, isPlaying: false }));
-
-                setState((prev) => ({
-                    ...prev,
-                    currentTrack: upcoming,
-                    currentTime: 0,
-                    duration: newActive.duration || 0,
-                    isPlaying: true,
-                }));
-
-                newActive.play().catch(() => {
-                    setState((prev) => ({ ...prev, isPlaying: false }));
-                });
-            } else {
-                audio.src = upcoming.url || `/storage/${upcoming.file_path}`;
-                applyAudioProps(audio);
-                setState((prev) => ({
-                    ...prev,
-                    currentTrack: upcoming,
-                    currentTime: 0,
-                    duration: 0,
-                    isPlaying: true,
-                }));
-                audio.play().catch(() => {
-                    setState((prev) => ({ ...prev, isPlaying: false }));
-                });
-            }
+            audio.play().catch(() => {
+                setState((prev) => ({ ...prev, isPlaying: false }));
+            });
         };
 
         const onError = () => {
@@ -225,17 +237,21 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             audio.removeEventListener('error', onError);
             audio.pause();
         };
+        // All deps are stable (useCallback with []), so this runs once.
     }, [applyAudioProps, getNextTrackFor, preloadNext]);
 
+    // ─── Sync volume / playback-rate / pitch to audio element ────────
+
     useEffect(() => {
-        if (activeRef.current) {
-            activeRef.current.volume = state.volume;
-            activeRef.current.preservesPitch = state.pitchSemitones === 0;
-            activeRef.current.playbackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
+        if (audioRef.current) {
+            audioRef.current.volume = state.volume;
+            audioRef.current.preservesPitch = state.pitchSemitones === 0;
+            audioRef.current.playbackRate = state.playbackRate * Math.pow(2, state.pitchSemitones / 12);
         }
     }, [state.volume, state.playbackRate, state.pitchSemitones]);
 
-    // Adaptive Theming Based on Cover Art
+    // ─── Adaptive Theming Based on Cover Art ─────────────────────────
+
     useEffect(() => {
         const coverPath = state.currentTrack?.project?.cover_path;
 
@@ -265,7 +281,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 document.documentElement.style.setProperty('--theme-base-color', `rgb(${r}, ${g}, ${b})`);
             })
             .catch(() => {
-                // Failsafe in case image is missing or CORS error
                 document.documentElement.style.removeProperty('--gradient-from');
                 document.documentElement.style.removeProperty('--gradient-to');
                 document.documentElement.style.removeProperty('--gradient-accent');
@@ -277,32 +292,53 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         };
     }, [state.currentTrack?.project?.cover_path]);
 
+    // ─── Playback controls ───────────────────────────────────────────
+
     const play = useCallback(() => {
-        if (activeRef.current) {
-            activeRef.current.play().then(() => {
-                setState((prev) => ({ ...prev, isPlaying: true }));
-            }).catch(() => {});
-        }
+        const audio = audioRef.current;
+        if (!audio || !audio.src) return;
+
+        const intent = ++playIntentRef.current;
+        audio.play()
+            .then(() => {
+                // Only update state if this is still the latest play intent
+                if (playIntentRef.current === intent) {
+                    setState((prev) => ({ ...prev, isPlaying: true }));
+                }
+            })
+            .catch(() => {
+                // Ignore AbortError from rapid play/pause, but mark stopped for real errors
+                if (playIntentRef.current === intent) {
+                    setState((prev) => ({ ...prev, isPlaying: false }));
+                }
+            });
     }, []);
 
     const pause = useCallback(() => {
-        if (activeRef.current) {
-            activeRef.current.pause();
-            setState((prev) => ({ ...prev, isPlaying: false }));
+        ++playIntentRef.current; // Invalidate any pending play() promise
+        const audio = audioRef.current;
+        if (audio) {
+            audio.pause();
         }
+        // Also kill the preload element in case it somehow got into a playing state
+        if (preloadRef.current && !preloadRef.current.paused) {
+            preloadRef.current.pause();
+        }
+        setState((prev) => ({ ...prev, isPlaying: false }));
     }, []);
 
     const stop = useCallback(() => {
-        if (activeRef.current) {
-            activeRef.current.pause();
-            activeRef.current.currentTime = 0;
-            setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
+        ++playIntentRef.current;
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
         }
+        setState((prev) => ({ ...prev, isPlaying: false, currentTime: 0 }));
     }, []);
 
     const seek = useCallback((time: number) => {
-        if (activeRef.current) {
-            activeRef.current.currentTime = time;
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
             setState((prev) => ({ ...prev, currentTime: time }));
         }
     }, []);
@@ -321,30 +357,42 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const setLoopMode = useCallback((mode: 'off' | 'all' | 'one') => {
         setState((prev) => ({ ...prev, loopMode: mode }));
-        if (activeRef.current) activeRef.current.loop = mode === 'one';
+        if (audioRef.current) audioRef.current.loop = mode === 'one';
     }, []);
 
     const toggleShuffle = useCallback(() => {
         setState((prev) => ({ ...prev, shuffle: !prev.shuffle }));
     }, []);
 
-    const loadTrack = useCallback((track: TrackWithProject & { project_info?: ProjectInfo }) => {
-        if (activeRef.current) {
+    // ─── Track loading ───────────────────────────────────────────────
+
+    const loadTrack = useCallback(
+        (track: TrackWithProject & { project_info?: ProjectInfo }) => {
+            const audio = audioRef.current;
+            if (!audio) return;
+
             const normalized: TrackWithProject = {
                 ...track,
                 project: track.project ?? track.project_info,
             };
-            activeRef.current.src = normalized.url || `/storage/${normalized.file_path}`;
-            applyAudioProps(activeRef.current);
+
+            // Stop whatever is currently playing before switching source
+            ++playIntentRef.current;
+            audio.pause();
+
+            audio.src = getTrackUrl(normalized);
+            applyAudioProps(audio);
             preloadedTrackIdRef.current = null;
+
             setState((prev) => ({
                 ...prev,
                 currentTrack: normalized,
                 currentTime: 0,
                 duration: 0,
             }));
-        }
-    }, [applyAudioProps]);
+        },
+        [applyAudioProps],
+    );
 
     const loadPlaylist = useCallback(
         (tracks: (TrackWithProject & { project_info?: ProjectInfo })[], project?: ProjectInfo) => {
@@ -360,25 +408,79 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         [loadTrack],
     );
 
+    // ─── Next / Previous (with safe autoplay) ────────────────────────
+
     const next = useCallback(() => {
         const s = stateRef.current;
         const upcoming = getNextTrackFor(s.currentTrack, s.playlist, s.shuffle);
-        if (upcoming) {
-            loadTrack(upcoming);
-            setTimeout(() => play(), 50);
-        }
-    }, [getNextTrackFor, loadTrack, play]);
+        if (!upcoming) return;
+
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // Stop current playback, load new track, and auto-play
+        ++playIntentRef.current;
+        audio.pause();
+        audio.src = getTrackUrl(upcoming);
+        applyAudioProps(audio);
+        preloadedTrackIdRef.current = null;
+
+        const intent = ++playIntentRef.current;
+        setState((prev) => ({
+            ...prev,
+            currentTrack: upcoming,
+            currentTime: 0,
+            duration: 0,
+            isPlaying: true,
+        }));
+
+        audio.play().catch(() => {
+            if (playIntentRef.current === intent) {
+                setState((prev) => ({ ...prev, isPlaying: false }));
+            }
+        });
+    }, [getNextTrackFor, applyAudioProps]);
 
     const previous = useCallback(() => {
         const prev = getPrevTrack();
-        if (prev) {
-            loadTrack(prev);
-            setTimeout(() => play(), 50);
-        }
-    }, [getPrevTrack, loadTrack, play]);
+        if (!prev) return;
+
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        ++playIntentRef.current;
+        audio.pause();
+        audio.src = getTrackUrl(prev);
+        applyAudioProps(audio);
+        preloadedTrackIdRef.current = null;
+
+        const intent = ++playIntentRef.current;
+        setState((s) => ({
+            ...s,
+            currentTrack: prev,
+            currentTime: 0,
+            duration: 0,
+            isPlaying: true,
+        }));
+
+        audio.play().catch(() => {
+            if (playIntentRef.current === intent) {
+                setState((s) => ({ ...s, isPlaying: false }));
+            }
+        });
+    }, [getPrevTrack, applyAudioProps]);
 
     const setCurrentTime = useCallback((time: number) => {
         setState((prev) => ({ ...prev, currentTime: time }));
+    }, []);
+
+    // ─── Cleanup on unmount ──────────────────────────────────────────
+
+    useEffect(() => {
+        return () => {
+            killAudioElement(audioRef.current);
+            killAudioElement(preloadRef.current);
+        };
     }, []);
 
     return (
